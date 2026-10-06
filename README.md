@@ -1,54 +1,84 @@
-# Modal Sandboxes in 7 demos
+# Modal Sandboxes: what they are, why they're useful, and how they speed up development
 
 Runnable demos for a developer talk on [Modal Sandboxes](https://modal.com/docs/guide/sandbox):
-throwaway, locked-down cloud containers you create, drive and destroy from Python —
-the building block behind code interpreters and coding agents.
+throwaway, locked-down cloud containers you create, drive and destroy from code.
 
-Each demo is one short file meant to fit on a slide. Timings print after every step.
+The talk is in three acts. Acts 1 and 2 are one short file per idea; Act 3 is an agent that turns
+GitHub issues into tested pull requests, with Claude Code working inside a sandbox.
 
 ## Setup
 
 ```bash
 pip install -r requirements.txt
-modal setup                       # or export MODAL_TOKEN_ID / MODAL_TOKEN_SECRET
-export ANTHROPIC_API_KEY=...      # demo 07 only
-python demos/prewarm.py           # before the talk: builds images so nothing cold-starts on stage
+modal setup                     # or export MODAL_TOKEN_ID / MODAL_TOKEN_SECRET
 ```
 
-Run any demo with `python demos/0N_name.py`, or all of them with `./run_all.sh`.
+For Act 3 also set:
 
-## How the orchestration works
+| Variable | What |
+|---|---|
+| `GITHUB_REPOSITORY` | `owner/repo` of your fork of this repo (public, so the sandbox can clone it) |
+| `GH_DEMO_TOKEN` | Fine-grained token for that repo: Contents, Issues, Pull requests (read/write) |
+| `CLAUDE_CODE_OAUTH_TOKEN` | From `claude setup-token`; runs on your Claude Pro/Max subscription. Or set `ANTHROPIC_API_KEY` instead |
+| `AGENT_MODEL` | Optional, defaults to `haiku` |
 
-Your Python process is the orchestrator. Sandboxes are passive workers: they only do what you tell them.
+## Act 1: What is a sandbox?
+
+`python demos/act1_hello.py` creates a sandbox, runs a shell command, streams Python output live and
+terminates it. A fresh, isolated computer is one `Sandbox.create` away, and it's gone when you're done.
+
+How it's orchestrated: **your code is the orchestrator, the sandbox is a passive worker.**
 
 ```
 your code ──Modal SDK──► Modal ──► sandbox 1 … sandbox N
    create → exec / upload → read stdout, files → decide next step → terminate
 ```
 
-In demo 07 an LLM joins the loop, but it never touches the sandbox directly — your code relays
-code from the LLM to the sandbox and errors from the sandbox back to the LLM.
+## Act 2: Why is that useful?
 
-## The demos and talk track
+| Demo | Shows | Takeaway |
+|---|---|---|
+| `python demos/act2_isolation.py` | A network call fails with `block_network=True`; an infinite loop is killed at `timeout=10`; a memory hog is OOM-killed at its limit | Untrusted code (from an LLM, a contributor, a dependency) can't phone home, run forever or take the host down |
+| `python demos/act2_snapshots.py` | Slow setup in sandbox A, `snapshot_filesystem()`, sandbox B boots from it with everything installed | Set up an environment once, clone it instantly: no "works on my machine" |
 
-| # | File | Say | They see | Takeaway |
-|---|------|-----|----------|----------|
-| 1 | `01_hello.py` | "Here's a computer I didn't have a second ago." | Sandbox id, `uname`, live streamed ticks | A remote container is one `Sandbox.create` away |
-| 2 | `02_your_data.py` | "Ship it data and code, get results back." | Growth per region, `out/chart.png` | Custom images + `sandbox.filesystem` = the data-agent loop |
-| 3 | `03_isolation.py` | "Now let's try to break out." | Network call fails, infinite loop killed at 10s, memory hog OOM-killed | `block_network`, `timeout`, `memory` make untrusted code safe |
-| 4 | `04_tunnel.py` | "Agents can build things people can use." | A public HTTPS URL; refresh and the counter goes up | `encrypted_ports` + `tunnels()` expose a live process |
-| 5 | `05_fan_out.py` | "One sandbox or ten — same code." | 10 π estimates, wall clock vs serial speed-up | `.aio` + `asyncio.gather` for parallel attempts |
-| 6 | `06_snapshots.py` | "Don't redo setup — freeze and resume." | Slow setup in A, B starts with everything installed | `snapshot_filesystem()` returns an image you can boot from |
-| 7 | `07_ai_interpreter.py` | "Put it together: a code interpreter in ~50 lines." | LLM code, a failure, the traceback fed back, a corrected answer | The LLM ⇄ sandbox loop is the whole trick |
+## Act 3: How does it speed up development? An issue-to-PR agent
 
-Demo 07 doesn't tell the LLM the CSV's column names (`sales_region`, `net_revenue_usd`), so the first
-attempt usually guesses wrong and hits a `KeyError`; the self-correction is the point. Pass your own
-question as an argument: `python demos/07_ai_interpreter.py "Which month had the most units sold?"`.
-Set `ANTHROPIC_MODEL` to use a different Claude model.
+```
+GitHub issue labelled `agent`
+   │  python agent/run.py --watch      (or the GitHub Action, in production)
+   ▼
+Orchestrator (agent/run.py): holds the GitHub token
+   1. relabel the issue, comment "picked up"
+   2. create a sandbox: Claude Code + deps baked into the image,
+      egress allowed only to api.anthropic.com and github.com
+   3. clone the repo, run `claude -p "<issue>"` inside the sandbox, stream what it does
+   4. run pytest itself; don't trust the agent's word
+   5. pull out `git diff`, commit and push it from the orchestrator, open a PR that closes the issue
+   6. start the app in the sandbox and post its tunnel URL as a live preview
+```
+
+- **Safety:** the agent runs arbitrary commands with permissions skipped, which is fine because the
+  sandbox is the boundary. It only holds the model credential; the GitHub token never enters it.
+- **Speed:** each issue gets a ready-to-go environment in seconds.
+- **Scale:** label three issues and three sandboxes work in parallel.
+- **Review:** the agent never merges. A human reviews the PR and clicks the preview.
+
+The agent works on `sample_app/`, a small FastAPI app with tests. To run it:
+
+```bash
+python agent/seed_issues.py             # create the three demo issues (add --reset between rehearsals)
+python agent/run.py --watch             # then label issues `agent` in the GitHub UI, live
+```
+
+**Production trigger:** `.github/workflows/agent.yml` runs the same script on `issues: labeled`, so
+there's no server to run: GitHub is the trigger, Modal is the compute. Enable it by setting the repo
+variable `AGENT_TRIGGER=actions`, adding the Modal and Claude secrets to the repo, and allowing
+"GitHub Actions to create and approve pull requests" in the repo's Actions settings.
 
 ## Tips for running live
 
-- Run `prewarm.py` shortly before you're on.
-- Open each file in your editor next to the terminal; the code is the slide.
-- Record a fallback run with `./run_all.sh` in case the venue Wi-Fi fails.
-- Everything runs under one Modal app, `sandbox-demo`; watch sandboxes appear in the Modal dashboard during demo 5.
+- Do a full rehearsal first. Modal caches the images, so nothing builds on stage.
+- Keep each file open next to the terminal; the code is the slide.
+- Watch sandboxes appear in the Modal dashboard while the agent runs.
+- Record a fallback run in case the venue Wi-Fi or the model misbehaves.
+- On a subscription token, parallel agents share your plan's usage limits.

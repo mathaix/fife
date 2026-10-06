@@ -1,0 +1,27 @@
+# Production trigger for the issue agent: labelling an issue `agent` runs it on a GitHub runner.
+# Opt in by setting the repository variable AGENT_TRIGGER=actions (leave unset when running `--watch` on stage).
+name: issue agent
+on:
+  issues:
+    types: [labeled]
+jobs:
+  agent:
+    if: github.event.label.name == 'agent' && vars.AGENT_TRIGGER == 'actions'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python agent/run.py --issue ${{ github.event.issue.number }}
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
