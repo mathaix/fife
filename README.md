@@ -43,6 +43,17 @@ your code ──Modal SDK──► Modal ──► sandbox 1 … sandbox N
 
 ## Act 3: How does it speed up development? An issue-to-PR agent
 
+### Architecture
+
+![Architecture: Python creates a Modal sandbox from an image with Claude Code installed, starts the coding agent, reruns tests, and publishes a PR.](docs/architecture.svg)
+
+**Python orchestrates the job; Claude Code orchestrates the coding work inside the sandbox.**
+The CLI is installed when Modal builds the reusable image, not on the orchestrator's machine.
+The Claude model runs remotely on Anthropic's servers.
+
+See [the architecture walkthrough and sequence diagram](docs/architecture.md) for the image build,
+per-issue lifecycle, credential boundaries, and failure path.
+
 ```
 GitHub issue labelled `agent`
    │  python agent/run.py --watch      (or the GitHub Action, in production)

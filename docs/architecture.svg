@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="840" viewBox="0 0 1200 840" role="img" aria-labelledby="diagram-title diagram-desc">
+  <title id="diagram-title">GitHub issue to PR: Claude Code inside a Modal sandbox</title>
+  <desc id="diagram-desc">Python defines a cached image with Claude Code installed, creates a fresh sandbox per issue, clones the public repo and starts the CLI. The CLI calls the remote Claude model and edits files. Python reruns tests, extracts the diff, publishes a PR and shares a preview. GitHub and Modal credentials stay outside the sandbox; the model credential enters the Claude Code process.</desc>
+  <style>
+    svg { background: #fff; font-family: Arial, sans-serif; --bg-elevated: 255 255 255; --tint-tertiary: 248 249 250; --border-primary: 177 183 192; --text-primary: 29 32 38; --text-secondary: 80 86 96; --text-tertiary: 96 103 114; }
+    .a-group rect { fill: rgb(var(--tint-tertiary)); stroke: rgb(var(--border-primary)); stroke-dasharray: 6 5; rx: 10; }
+    .a-group text { fill: rgb(var(--text-tertiary)); font-size: 16px; }
+    .a-node rect { fill: rgb(var(--bg-elevated)); stroke: rgb(var(--border-primary)); rx: 8; }
+    .a-node__title { fill: rgb(var(--text-primary)); font-size: 20px; font-weight: 600; }
+    .a-node__sub { fill: rgb(var(--text-secondary)); font-size: 16px; }
+    .a-edge { fill: none; stroke: rgb(var(--text-tertiary)); stroke-width: 1.8; }
+    .a-edge__label { fill: rgb(var(--text-tertiary)); font-size: 16px; }
+  </style>
+  <defs><marker id="flow-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="rgb(var(--text-tertiary))"/></marker></defs>
+  <g data-a-diagram-viewport="">
+    <text class="a-node__title" x="30" y="35">Python manages the job. Claude Code manages the coding loop.</text>
+    <g class="a-group"><rect x="20" y="65" width="265" height="685"/><text x="35" y="90">GitHub</text></g>
+    <g class="a-group"><rect x="315" y="65" width="470" height="165"/><text x="335" y="90">Outside sandbox · laptop or Actions</text></g>
+    <g class="a-group"><rect x="315" y="305" width="470" height="270"/><text x="335" y="330">Modal sandbox · fresh workspace per issue</text></g>
+
+    <path class="a-edge" d="M265,156 H335" marker-end="url(#flow-arrow)"/>
+    <text class="a-edge__label" x="285" y="135">1</text>
+    <path class="a-edge" d="M550,210 V355" marker-end="url(#flow-arrow)"/>
+    <text class="a-edge__label" x="565" y="260">2. create sandbox; start CLI</text>
+    <text class="a-edge__label" x="565" y="282">inject model credential</text>
+    <path class="a-edge" d="M765,155 H875" marker-end="url(#flow-arrow)"/>
+    <text class="a-edge__label" x="792" y="135">define</text>
+    <path class="a-edge" d="M1005,245 V300 H810 V350 H785" marker-end="url(#flow-arrow)"/>
+    <text class="a-edge__label" x="895" y="285">boot from image</text>
+    <path class="a-edge" d="M265,442 H335" marker-end="url(#flow-arrow)"/>
+    <text class="a-edge__label" x="285" y="424">clone</text>
+    <path class="a-edge" d="M550,425 V465" marker-end="url(#flow-arrow)"/>
+    <path class="a-edge" d="M735,500 H765 V390 H735" marker-end="url(#flow-arrow)"/>
+    <text class="a-edge__label" x="565" y="450">read → edit → test → repeat</text>
+    <path class="a-edge" d="M745,382 H875" marker-end="url(#flow-arrow)"/>
+    <text class="a-edge__label" x="805" y="365">request</text>
+    <path class="a-edge" d="M875,410 H745" marker-end="url(#flow-arrow)"/>
+    <text class="a-edge__label" x="807" y="436">action</text>
+    <path class="a-edge" d="M550,535 V655" marker-end="url(#flow-arrow)"/>
+    <text class="a-edge__label" x="565" y="612">3. agent exits; Python takes over</text>
+    <path class="a-edge" d="M335,700 H265" marker-end="url(#flow-arrow)"/>
+    <text class="a-edge__label" x="288" y="680">4</text>
+    <path class="a-edge" d="M765,700 H875" marker-end="url(#flow-arrow)"/>
+    <text class="a-edge__label" x="794" y="678">5</text>
+
+    <g class="a-node" data-a-node="issue" tabindex="0" role="button" data-a-title="GitHub issue" data-a-detail="A developer labels an issue agent. The local watcher polls for it, or an enabled GitHub Action invokes the Python orchestrator for this issue.">
+      <rect x="40" y="115" width="225" height="90"/>
+      <text class="a-node__title" x="55" y="145">Issue labelled agent</text><text class="a-node__sub" x="55" y="173">Polling or GitHub Action</text>
+    </g>
+    <g class="a-node" data-a-node="orchestrator" tabindex="0" role="button" data-a-title="Python orchestrator" data-a-detail="agent/run.py owns the job lifecycle: claim issue, create sandbox, launch Claude Code, stream logs, request a test rerun, extract the patch and publish results. GitHub and Modal credentials stay here.">
+      <rect x="335" y="110" width="430" height="100"/>
+      <text class="a-node__title" x="355" y="141">Python orchestrator · agent/run.py</text><text class="a-node__sub" x="355" y="169">Claim issue · create · exec · collect · publish</text><text class="a-node__sub" x="355" y="193">Holds GitHub and Modal credentials</text>
+    </g>
+    <g class="a-node" data-a-node="image" tabindex="0" role="button" data-a-title="Reusable Modal image" data-a-detail="Python defines the image. Modal builds and caches it with Python, Git, Claude Code and application dependencies. No secrets or repository are baked in. Each issue boots a fresh sandbox from this image.">
+      <rect x="875" y="100" width="300" height="145"/>
+      <text class="a-node__title" x="892" y="130">Reusable Modal image</text><text class="a-node__sub" x="892" y="161">Claude Code CLI installed here</text><text class="a-node__sub" x="892" y="185">Python + Git + app dependencies</text><text class="a-node__sub" x="892" y="220">Built and cached · no secrets</text>
+    </g>
+    <g class="a-node" data-a-node="repo" tabindex="0" role="button" data-a-title="Public repository" data-a-detail="Python instructs the sandbox to clone the public demo repository for every issue. No GitHub token is needed inside the sandbox to clone it.">
+      <rect x="40" y="395" width="225" height="95"/>
+      <text class="a-node__title" x="55" y="427">Public repository</text><text class="a-node__sub" x="55" y="454">Clone per issue</text><text class="a-node__sub" x="55" y="477">No GitHub token required</text>
+    </g>
+    <g class="a-node" data-a-node="cli" tabindex="0" role="button" data-a-title="Claude Code CLI" data-a-detail="The already-installed CLI runs inside the sandbox via claude -p with the issue prompt. It calls Anthropic's remote model, executes tools locally and streams agent events back to Python. The subscription token or API key is injected into this process.">
+      <rect x="335" y="355" width="410" height="70"/>
+      <text class="a-node__title" x="355" y="383">Claude Code CLI · claude -p</text><text class="a-node__sub" x="355" y="411">Issue prompt + model credential</text>
+    </g>
+    <g class="a-node" data-a-node="workspace" tabindex="0" role="button" data-a-title="Coding workspace" data-a-detail="Claude Code reads and edits files and runs commands in the cloned sample app. It can repeat tests and fixes until it finishes. This coding loop belongs to the CLI, not the outer Python script.">
+      <rect x="335" y="465" width="400" height="70"/>
+      <text class="a-node__title" x="355" y="493">Cloned app + files + tests</text><text class="a-node__sub" x="355" y="520">Agent edits and runs code here</text>
+    </g>
+    <g class="a-node" data-a-node="model" tabindex="0" role="button" data-a-title="Remote Claude model" data-a-detail="The Claude model runs on Anthropic's servers, not in the Modal sandbox. The CLI sends authenticated model requests and receives its next actions. Subscription authentication still needs rehearsal.">
+      <rect x="875" y="345" width="300" height="115"/>
+      <text class="a-node__title" x="892" y="377">Claude model · Anthropic</text><text class="a-node__sub" x="892" y="406">Remote inference, not installed</text><text class="a-node__sub" x="892" y="435">Subscription token or API key</text>
+    </g>
+    <g class="a-node" data-a-node="verify" tabindex="0" role="button" data-a-title="Verify and publish" data-a-detail="After the CLI exits, Python instructs the same sandbox to rerun pytest and collects git diff. On passing tests and a nonempty patch, it commits and pushes outside the sandbox. Failed jobs receive a failure comment and are terminated. These are agent-editable tests, not trusted independent acceptance tests.">
+      <rect x="335" y="655" width="430" height="90"/>
+      <text class="a-node__title" x="355" y="685">Python: verify and publish</text><text class="a-node__sub" x="355" y="713">Rerun pytest in sandbox · extract diff</text><text class="a-node__sub" x="355" y="736">Commit and push outside sandbox</text>
+    </g>
+    <g class="a-node" data-a-node="pr" tabindex="0" role="button" data-a-title="Pull request and issue update" data-a-detail="Python opens a PR with Closes #N, test output and a preview link, comments on the issue and marks it done. A human reviews the change; there is no automatic merge.">
+      <rect x="40" y="640" width="225" height="105"/>
+      <text class="a-node__title" x="55" y="670">PR + issue update</text><text class="a-node__sub" x="55" y="698">Tests + patch + preview</text><text class="a-node__sub" x="55" y="726">Human review · no merge</text>
+    </g>
+    <g class="a-node" data-a-node="preview" tabindex="0" role="button" data-a-title="HTTPS preview" data-a-detail="Python starts Uvicorn in the successful sandbox and retrieves Modal's encrypted tunnel URL for /docs. The preview expires with the sandbox's 1-hour total lifetime measured from creation.">
+      <rect x="875" y="640" width="300" height="105"/>
+      <text class="a-node__title" x="892" y="670">HTTPS app preview</text><text class="a-node__sub" x="892" y="698">App runs in the same sandbox</text><text class="a-node__sub" x="892" y="726">Expires with sandbox lifetime</text>
+    </g>
+    <text class="a-node__sub" x="30" y="792">GitHub and Modal tokens stay outside. Only the model credential enters the agent process.</text>
+    <text class="a-node__sub" x="30" y="817">Initial scaffold · full Modal / GitHub / subscription flow still needs an end-to-end rehearsal.</text>
+  </g>
+</svg>
