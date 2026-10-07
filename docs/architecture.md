@@ -2,6 +2,22 @@
 
 **The Python program manages jobs. Claude Code manages the coding loop inside each job's sandbox.**
 
+## Laptop polling and dispatch workflow
+
+The talk demo runs the orchestrator on your laptop with `python agent/run.py --watch`.
+You create a GitHub issue and label it `agent`; Python polls every five seconds and dispatches
+a fresh Modal sandbox for each newly seen issue. It continues polling while jobs run concurrently.
+After Claude Code finishes, Python requests tests and retrieves the patch, then publishes the
+branch, PR and preview link from your laptop. GitHub Actions and a hosted VM are not part of this flow.
+
+![Laptop issue-to-PR workflow](laptop-workflow.svg)
+
+Download [the interactive workflow diagram](laptop-workflow.html) and open it locally,
+or use [the slide-ready SVG](laptop-workflow.svg).
+Keep the laptop awake and leave `AGENT_TRIGGER` unset to avoid duplicate Actions jobs.
+
+## Component architecture
+
 ![Architecture](architecture.svg)
 
 ## Build once, reuse per issue

@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="960" viewBox="0 0 1280 960" role="img" aria-labelledby="workflow-title workflow-desc">
+<title id="workflow-title">GitHub issue to Modal sandbox to PR, orchestrated from your laptop</title>
+<desc id="workflow-desc">You create a GitHub issue and label it agent. Python on your laptop polls every five seconds, marks the issue working and dispatches a fresh Modal sandbox. Claude Code runs in the sandbox, calling Anthropic's remote model. Python requests a test rerun and extracts the patch. Passing work becomes a branch and pull request with a preview link; failing work receives a failure comment and the sandbox is terminated.</desc>
+<style>
+    svg { background: #fff; font-family: Arial, sans-serif; --bg-elevated: 255 255 255; --tint-tertiary: 248 249 250; --border-primary: 177 183 192; --text-primary: 29 32 38; --text-secondary: 80 86 96; --text-tertiary: 96 103 114; }
+    .a-group rect { fill: rgb(var(--tint-tertiary)); stroke: rgb(var(--border-primary)); stroke-dasharray: 6 5; rx: 10; }
+    .a-group text { fill: rgb(var(--text-tertiary)); font-size: 18px; }
+    .a-node rect { fill: rgb(var(--bg-elevated)); stroke: rgb(var(--border-primary)); rx: 8; }
+    .a-node__title { fill: rgb(var(--text-primary)); font-size: 22px; font-weight: 600; }
+    .a-node__sub { fill: rgb(var(--text-secondary)); font-size: 18px; }
+    .a-edge { fill: none; stroke: rgb(var(--text-tertiary)); stroke-width: 1.8; }
+    .a-edge__label { fill: rgb(var(--text-tertiary)); font-size: 18px; }
+  </style>
+<defs><marker id="workflow-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="rgb(var(--text-tertiary))"/></marker></defs>
+<g data-a-diagram-viewport="">
+<text class="a-node__title" x="25" y="35">Issue → poll → dispatch → code → verify → PR</text>
+<g class="a-group"><rect x="20" y="60" width="330" height="835"/><text x="40" y="90">GitHub · issues and PRs</text></g>
+<g class="a-group"><rect x="390" y="60" width="450" height="835"/><text x="410" y="90">Your laptop · Python orchestrator</text></g>
+<g class="a-group"><rect x="880" y="60" width="380" height="835"/><text x="900" y="90">Modal · disposable execution</text></g>
+
+<path class="a-edge" d="M330,191 H410" marker-end="url(#workflow-arrow)"/>
+<path class="a-edge" d="M615,250 V300" marker-end="url(#workflow-arrow)"/>
+<text class="a-edge__label" x="630" y="278">New issue found</text>
+<path class="a-edge" d="M410,337 H330" marker-end="url(#workflow-arrow)"/>
+<path class="a-edge" d="M615,375 V425" marker-end="url(#workflow-arrow)"/>
+<path class="a-edge" d="M820,470 H900" marker-end="url(#workflow-arrow)"/>
+<path class="a-edge" d="M1070,515 V550" marker-end="url(#workflow-arrow)"/>
+<path class="a-edge" d="M900,635 H860 V705 H820" marker-end="url(#workflow-arrow)"/>
+<text class="a-edge__label" x="632" y="610">Agent exits</text>
+<text class="a-edge__label" x="632" y="634">pytest + git diff</text>
+<path class="a-edge" d="M410,710 H330" marker-end="url(#workflow-arrow)"/>
+<text class="a-edge__label" x="352" y="691">Fail</text>
+<path class="a-edge" d="M615,755 V795" marker-end="url(#workflow-arrow)"/>
+<text class="a-edge__label" x="632" y="785">Pass + nonempty diff</text>
+<path class="a-edge" d="M410,837 H330" marker-end="url(#workflow-arrow)"/>
+<path class="a-edge a-edge--dim" d="M1070,660 V795" marker-end="url(#workflow-arrow)"/>
+<text class="a-edge__label" x="1085" y="720">On success</text>
+<path class="a-edge a-edge--dim" d="M900,837 H820" marker-end="url(#workflow-arrow)"/>
+
+<g class="a-node" data-a-node="issue" tabindex="0" role="button" data-a-title="1. You create and label the issue" data-a-detail="Create a GitHub issue with a clear task and acceptance criteria, then apply the agent label. Creating an unlabelled issue alone does not trigger the current watcher.">
+<rect x="40" y="125" width="290" height="125"/><text class="a-node__title" x="57" y="157">1. You create an issue</text><text class="a-node__sub" x="57" y="189">Describe the change</text><text class="a-node__sub" x="57" y="220">Apply the agent label</text>
+</g>
+<g class="a-node" data-a-node="poll" tabindex="0" role="button" data-a-title="2. Python polls from your laptop" data-a-detail="The --watch process requests open GitHub issues labelled agent, then sleeps for five seconds between polling rounds. An in-memory seen set prevents redispatch during this watcher session. Keep the laptop awake and the process running; this is not a durable queue.">
+<rect x="410" y="125" width="410" height="125"/><text class="a-node__title" x="428" y="157">2. Poll open agent issues</text><text class="a-node__sub" x="428" y="189">agent/run.py --watch</text><text class="a-node__sub" x="428" y="220">Repeat every 5 seconds while running</text>
+</g>
+<g class="a-node" data-a-node="claim" tabindex="0" role="button" data-a-title="3. Pick up a newly seen issue" data-a-detail="Python schedules a task for each newly seen issue, replaces the agent label with agent-working, fetches the issue details and comments that it has been picked up. Multiple jobs can run concurrently; the polling loop continues while they work.">
+<rect x="410" y="300" width="410" height="75"/><text class="a-node__title" x="428" y="331">3. Start a job for the issue</text><text class="a-node__sub" x="428" y="360">Relabel and comment; continue polling</text>
+</g>
+<g class="a-node" data-a-node="working" tabindex="0" role="button" data-a-title="Issue status: working" data-a-detail="Python changes the issue label to agent-working and adds a pickup comment. This is a status update, not a separate hosted worker or GitHub Actions trigger.">
+<rect x="40" y="300" width="290" height="75"/><text class="a-node__title" x="57" y="331">Issue: agent-working</text><text class="a-node__sub" x="57" y="360">Pickup comment posted</text>
+</g>
+<g class="a-node" data-a-node="dispatch" tabindex="0" role="button" data-a-title="4. Dispatch through the Modal SDK" data-a-detail="Python creates a fresh sandbox from its cached image, instructs it to clone the public repository, then launches claude -p with the issue prompt and a Modal Secret containing the Claude subscription token. These commands are sent through sb.exec.aio; no SSH is needed.">
+<rect x="410" y="425" width="410" height="90"/><text class="a-node__title" x="428" y="455">4. Dispatch via Modal SDK</text><text class="a-node__sub" x="428" y="480">Create sandbox → clone repository</text><text class="a-node__sub" x="428" y="503">Start claude -p with the issue prompt</text>
+</g>
+<g class="a-node" data-a-node="sandbox" tabindex="0" role="button" data-a-title="Fresh sandbox from a cached image" data-a-detail="Each issue gets its own filesystem and execution environment. The reusable image has Python, Git, Claude Code and app dependencies installed. Source code is cloned for each job; credentials are not baked into the image.">
+<rect x="900" y="425" width="340" height="90"/><text class="a-node__title" x="918" y="455">Fresh sandbox per issue</text><text class="a-node__sub" x="918" y="480">Cached image: Claude Code + deps</text><text class="a-node__sub" x="918" y="503">Isolated checkout and commands</text>
+</g>
+<g class="a-node" data-a-node="code" tabindex="0" role="button" data-a-title="5. Claude Code runs the coding loop" data-a-detail="Claude Code runs inside Modal: read files, ask the remote Claude model for actions, edit files, run tests and repeat. Python streams progress to your laptop terminal. The Claude model runs on Anthropic's servers, not on your laptop or inside Modal.">
+<rect x="900" y="550" width="340" height="110"/><text class="a-node__title" x="918" y="582">5. Claude Code works</text><text class="a-node__sub" x="918" y="610">Read → edit → test → repeat</text><text class="a-node__sub" x="918" y="639">Calls remote Claude on Anthropic</text>
+</g>
+<g class="a-node" data-a-node="verify" tabindex="0" role="button" data-a-title="6. Python verifies and retrieves the patch" data-a-detail="After Claude Code exits, Python requests a separate pytest run in the same sandbox and extracts the staged git diff, including new files. Passing tests and a nonempty diff are required. The tests are agent-editable; this is not a trusted independent acceptance suite.">
+<rect x="410" y="665" width="410" height="90"/><text class="a-node__title" x="428" y="697">6. Verify and collect results</text><text class="a-node__sub" x="428" y="724">Rerun pytest inside the sandbox</text><text class="a-node__sub" x="428" y="747">Retrieve the patch; gate publication</text>
+</g>
+<g class="a-node" data-a-node="failure" tabindex="0" role="button" data-a-title="Failure path" data-a-detail="For failures handled by the current job's try/except block, Python posts an error comment, changes the label to agent-failed and attempts to terminate the sandbox. It does not automatically launch a repair job. Failures before sandbox creation and durable retry behavior need hardening.">
+<rect x="40" y="665" width="290" height="90"/><text class="a-node__title" x="57" y="697">Issue: agent-failed</text><text class="a-node__sub" x="57" y="724">Error comment; no PR</text><text class="a-node__sub" x="57" y="747">Terminate failed sandbox</text>
+</g>
+<g class="a-node" data-a-node="publish" tabindex="0" role="button" data-a-title="7. Publish from your laptop" data-a-detail="Python applies the patch in a temporary local checkout, commits and pushes agent/issue-N using the GitHub token outside Modal, then opens the PR with Closes #N, test results and a preview link. It comments on the issue and changes the label to agent-done. No automatic merge or review-comment follow-up loop is implemented.">
+<rect x="410" y="795" width="410" height="80"/><text class="a-node__title" x="428" y="826">7. Publish from your laptop</text><text class="a-node__sub" x="428" y="852">Commit + push branch → open PR</text>
+</g>
+<g class="a-node" data-a-node="pr" tabindex="0" role="button" data-a-title="PR ready for human review" data-a-detail="GitHub receives a new branch and PR, with test output and the Modal preview URL. The original issue gets a results comment and agent-done label. The issue is not closed just by opening the PR; Closes #N takes effect when the PR is merged into the default branch.">
+<rect x="40" y="795" width="290" height="80"/><text class="a-node__title" x="57" y="826">PR + issue: agent-done</text><text class="a-node__sub" x="57" y="852">Preview link; human review</text>
+</g>
+<g class="a-node" data-a-node="preview" tabindex="0" role="button" data-a-title="Successful sandbox hosts a preview" data-a-detail="Python starts Uvicorn in the same sandbox and gets a Modal HTTPS tunnel URL for /docs before opening the PR. The preview expires with the sandbox's one-hour maximum lifetime, measured from sandbox creation, not from publication.">
+<rect x="900" y="795" width="340" height="80"/><text class="a-node__title" x="918" y="826">Live app preview</text><text class="a-node__sub" x="918" y="852">Same sandbox · HTTPS tunnel URL</text>
+</g>
+<text class="a-node__sub" x="25" y="925">One laptop watcher → concurrent issue jobs → one isolated Modal sandbox per issue.</text>
+</g>
+</svg>

@@ -43,6 +43,18 @@ your code ──Modal SDK──► Modal ──► sandbox 1 … sandbox N
 
 ## Act 3: How does it speed up development? An issue-to-PR agent
 
+### Laptop workflow (the talk demo)
+
+![Laptop workflow: create an issue and label it agent; Python polls GitHub every five seconds, dispatches a Modal sandbox, verifies the result and publishes a PR with a preview.](docs/laptop-workflow.svg)
+
+Run `python agent/run.py --watch` on your laptop. Create an issue and label it `agent`;
+Python polls for newly seen issues and dispatches one sandbox per issue while continuing to watch.
+Claude Code works inside Modal, and your laptop verifies and publishes the results.
+Keep the laptop awake and `AGENT_TRIGGER` unset so the optional Actions workflow does not start duplicate jobs.
+
+Download [the interactive workflow diagram](docs/laptop-workflow.html) and open it locally to explore
+each step, or use [the SVG](docs/laptop-workflow.svg) in slides. No hosted VM or Actions runner is required.
+
 ### Architecture
 
 ![Architecture: Python creates a Modal sandbox from an image with Claude Code installed, starts the coding agent, reruns tests, and publishes a PR.](docs/architecture.svg)
@@ -56,7 +68,7 @@ per-issue lifecycle, credential boundaries, and failure path.
 
 ```
 GitHub issue labelled `agent`
-   │  python agent/run.py --watch      (or the GitHub Action, in production)
+   │  python agent/run.py --watch      (running on your laptop)
    ▼
 Orchestrator (agent/run.py): holds the GitHub token
    1. relabel the issue, comment "picked up"
@@ -81,7 +93,7 @@ python agent/seed_issues.py             # create the three demo issues (add --re
 python agent/run.py --watch             # then label issues `agent` in the GitHub UI, live
 ```
 
-**Production trigger:** `.github/workflows/agent.yml` runs the same script on `issues: labeled`, so
+**Optional Actions trigger:** `.github/workflows/agent.yml` runs the same script on `issues: labeled`, so
 there's no server to run: GitHub is the trigger, Modal is the compute. Enable it by setting the repo
 variable `AGENT_TRIGGER=actions`, adding the Modal and Claude secrets to the repo, and allowing
 "GitHub Actions to create and approve pull requests" in the repo's Actions settings.
