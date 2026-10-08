@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="icon-title icon-desc">
+  <title id="icon-title">Fife</title>
+  <desc id="icon-desc">Fife's friendly golden retriever mascot, with floppy ears, a tousled forelock, and a cheerful smile.</desc>
+  <g transform="translate(0 9)">
+  <g stroke-linecap="round" stroke-linejoin="round">
+    <!-- A light keyline keeps the floppy ears distinct on dark surfaces. -->
+    <path d="M72 60C45 48 25 68 23 98L18 153C16 180 34 194 57 180L65 174C79 203 101 218 128 218C155 218 177 203 191 174L199 180C222 194 240 180 238 153L233 98C231 68 211 48 184 60C171 42 154 34 137 35L145 22C126 21 108 27 98 38L98 28C85 34 76 45 72 60Z" fill="#EDB34F" stroke="#FFF2D6" stroke-width="12"/>
+    <!-- Long, softly folded ears give the silhouette its retriever character. -->
+    <path d="M78 64C49 47 29 68 27 98L22 151C20 175 34 189 52 178C73 166 81 124 83 85Z" fill="#C78A36" stroke="#583C2B" stroke-width="5"/>
+    <path d="M178 64C207 47 227 68 229 98L234 151C236 175 222 189 204 178C183 166 175 124 173 85Z" fill="#C78A36" stroke="#583C2B" stroke-width="5"/>
+    <path d="M48 83C37 103 39 143 36 155M208 83C219 103 217 143 220 155" fill="none" stroke="#E6AE54" stroke-width="7"/>
+    <!-- Forelock, broad forehead, and feathered cheeks. -->
+    <path d="M65 98C64 71 75 43 98 28L98 38C109 27 126 21 145 22L137 35C166 32 191 58 191 98L188 132L199 143L187 146L194 158L181 158C174 192 153 213 128 214C103 213 82 192 75 158L62 158L69 146L57 143L68 132Z" fill="#EDB34F" stroke="#583C2B" stroke-width="5"/>
+    <path d="M102 54C112 44 127 41 139 44C123 59 116 78 118 103C99 91 91 73 102 54Z" fill="#F8CE79"/>
+    <!-- Relaxed brows and bright, generous eyes. -->
+    <path d="M81 96Q91 89 101 94M155 94Q165 89 175 96" fill="none" stroke="#B87D31" stroke-width="5"/>
+    <ellipse cx="93" cy="114" rx="7" ry="9" fill="#382D28"/>
+    <ellipse cx="163" cy="114" rx="7" ry="9" fill="#382D28"/>
+    <circle cx="95" cy="111" r="2.5" fill="#FFF9EC"/>
+    <circle cx="165" cy="111" r="2.5" fill="#FFF9EC"/>
+    <!-- A cream muzzle and open smile make the expression read at icon size. -->
+    <path d="M128 132C111 120 87 126 81 145C75 164 88 183 106 187C117 197 139 197 150 187C168 183 181 164 175 145C169 126 145 120 128 132Z" fill="#FFE3A7"/>
+    <path d="M104 164Q128 177 152 164C148 187 139 198 128 198C117 198 108 187 104 164Z" fill="#583C2B"/>
+    <path d="M116 183Q128 177 140 183L139 193C137 204 119 204 117 193Z" fill="#E58F83"/>
+    <path d="M128 187V194" stroke="#B96663" stroke-width="3"/>
+    <path d="M128 151V160C118 172 103 174 96 164M128 160C138 172 153 174 160 164" fill="none" stroke="#583C2B" stroke-width="4.5"/>
+    <path d="M113 136Q128 130 143 136C149 143 135 155 128 155C121 155 107 143 113 136Z" fill="#382D28"/>
+    <path d="M119 139Q124 137 129 138" fill="none" stroke="#80634C" stroke-width="3"/>
+  </g>
+  </g>
+</svg>
