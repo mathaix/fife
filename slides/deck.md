@@ -95,6 +95,50 @@ style: |
 
 ---
 
+<!-- _class: light -->
+
+<p class="eyebrow">The pivot</p>
+
+## What a sandbox is
+
+<p style="font-family:'Space Grotesk';font-size:40px;line-height:1.3;margin:0 0 28px">An ephemeral, isolated computer with an API, where an agent can run anything inside a blast radius <span style="color:#c2410c">you control</span>.</p>
+
+<div class="pills"><span>Isolated</span><span>Ephemeral</span><span>Programmable</span><span>Fast to start</span><span>Snapshottable</span></div>
+
+---
+
+<p class="eyebrow blue">Isolation</p>
+
+## The isolation spectrum
+
+<div class="spectrum">
+<div><b>OS sandbox</b>Seatbelt, bubblewrap, Landlock</div>
+<div><b>Container</b>Namespaces and cgroups; shared host kernel</div>
+<div><b>gVisor</b>User-space kernel intercepts syscalls</div>
+<div><b>microVM</b>Firecracker, Kata; own kernel</div>
+<div><b>Full VM</b>Full hardware virtualization</div>
+</div>
+<div class="axis"></div>
+<div><span>← FASTER START · LESS OVERHEAD</span><span>STRONGER BOUNDARY →</span></div>
+
+---
+
+<!-- _class: light -->
+
+<p class="eyebrow">The ecosystem</p>
+
+## Who builds the sandboxes
+
+| Tool | Isolation | Notable |
+|---|---|---|
+| Firecracker | microVM | Open-source building block from AWS; not a product |
+| Docker | Container | Dev default; not enough alone for untrusted code |
+| E2B | Firecracker microVM | Agent-focused code-interpreter SDK |
+| Modal | gVisor | Built for scale; locked down by default |
+| Daytona | Container (Sysbox) | Fast creation; egress allowlists; placeholder secrets |
+
+---
+
 <p class="eyebrow">Foundations · 1 of 4</p>
 
 ## The agent loop
@@ -189,34 +233,6 @@ style: |
 
 ---
 
-<!-- _class: light -->
-
-<p class="eyebrow">The pivot</p>
-
-## What a sandbox is
-
-<p style="font-family:'Space Grotesk';font-size:40px;line-height:1.3;margin:0 0 28px">An ephemeral, isolated computer with an API, where an agent can run anything inside a blast radius <span style="color:#c2410c">you control</span>.</p>
-
-<div class="pills"><span>Isolated</span><span>Ephemeral</span><span>Programmable</span><span>Fast to start</span><span>Snapshottable</span></div>
-
----
-
-<p class="eyebrow blue">Isolation</p>
-
-## The isolation spectrum
-
-<div class="spectrum">
-<div><b>OS sandbox</b>Seatbelt, bubblewrap, Landlock</div>
-<div><b>Container</b>Namespaces and cgroups; shared host kernel</div>
-<div><b>gVisor</b>User-space kernel intercepts syscalls</div>
-<div><b>microVM</b>Firecracker, Kata; own kernel</div>
-<div><b>Full VM</b>Full hardware virtualization</div>
-</div>
-<div class="axis"></div>
-<div><span>← FASTER START · LESS OVERHEAD</span><span>STRONGER BOUNDARY →</span></div>
-
----
-
 <!-- _class: sbx -->
 
 <p class="eyebrow">Stage 4 of 5 · In sandboxes</p>
@@ -266,22 +282,6 @@ style: |
 <div><small>BOTTLENECK</small><span class="neck">Isolation vs. speed vs. cost</span></div>
 </div>
 <div class="stages"><div>1 Autocomplete</div><div>2 Local agent</div><div>3 Parallel local</div><div>4 Agent factory</div><div class="on">5 Agent swarm</div></div>
-
----
-
-<!-- _class: light -->
-
-<p class="eyebrow">The ecosystem</p>
-
-## Who builds the sandboxes
-
-| Tool | Isolation | Notable |
-|---|---|---|
-| Firecracker | microVM | Open-source building block from AWS; not a product |
-| Docker | Container | Dev default; not enough alone for untrusted code |
-| E2B | Firecracker microVM | Agent-focused code-interpreter SDK |
-| Modal | gVisor | Built for scale; locked down by default |
-| Daytona | Container (Sysbox) | Fast creation; egress allowlists; placeholder secrets |
 
 ---
 
