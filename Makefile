@@ -2,7 +2,7 @@
 PY := .venv/bin/python
 VENV := .venv/.installed
 
-.PHONY: help setup watch issue seed demos
+.PHONY: help setup watch issue seed demos slides
 
 help: ## list the commands
 	@grep -E '^[a-z]+:.*## ' Makefile | sed 's/:.*## /\t/'
@@ -26,3 +26,6 @@ seed: $(VENV) ## create the three sample_app demo issues: make seed REPO=owner/n
 
 demos: $(VENV) ## run the Act 1 and Act 2 sandbox demos
 	PATH=.venv/bin:$$PATH ./run_all.sh
+
+slides: ## rebuild slides/index.html (the web version of the talk) from slides/deck.md
+	npx -y @marp-team/marp-cli@4.1.2 slides/deck.md --html --allow-local-files -o slides/index.html < /dev/null

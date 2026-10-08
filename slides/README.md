@@ -2,12 +2,6 @@
 
 Mathew Mathew · EvoNexus · Oct 8
 
-- **[Slides (PDF)](scale-software-development-with-ai-sandboxes.pdf)**
-- **[Source (Markdown)](deck.md)**: written in [Marp](https://marp.app). Present or export it with:
+**[View the slides](https://mathaix.github.io/fife/slides/)** · [PDF](scale-software-development-with-ai-sandboxes.pdf) · [Fife, the demo](../README.md)
 
-```bash
-npx @marp-team/marp-cli@4.1.2 deck.md --html --allow-local-files --preview   # present
-npx @marp-team/marp-cli@4.1.2 deck.md --html --allow-local-files --pdf       # export PDF
-```
-
-The demo from the talk is [Fife](../README.md), the AI backlog resolver in this repo.
+The source is [deck.md](deck.md) ([Marp](https://marp.app)); `make slides` rebuilds `index.html` from it.
