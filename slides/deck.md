@@ -20,7 +20,8 @@ style: |
   /* ladder */
   .rung { display:flex; align-items:center; background:var(--card); border-radius:8px; padding:12px 26px; margin:9px 0; font-size:22px; }
   .rung b { width:60px; color:var(--orange); font-family:'Space Grotesk'; } .rung.up b { color:var(--blue); }
-  .rung span { width:390px; font-weight:600; } .rung em { font-style:normal; color:var(--muted); }
+  .rung span { width:340px; font-weight:600; } .rung em { width:390px; font-style:normal; color:var(--muted); }
+  .rung i { flex:1; text-align:right; font-style:normal; font-weight:600; color:var(--orange); } .rung.up i { color:var(--blue); }
   .divide { font-family:'JetBrains Mono'; font-size:14px; letter-spacing:.14em; color:var(--muted); padding:4px 26px; }
   /* stage cards */
   .cards { display:flex; gap:22px; height:360px; }
@@ -86,12 +87,12 @@ style: |
 
 ## Where are you on the ladder?
 
-<div class="rung up"><b>5</b><span>Agent swarm</span><em>Many agents, one problem</em></div>
-<div class="rung up"><b>4</b><span>Agent factory</span><em>Tickets in, PRs out</em></div>
-<div class="divide">▲ SANDBOXES · · · · · · · · · · · · · LAPTOP ▼</div>
-<div class="rung"><b>3</b><span>Parallel local agents</span><em>Worktrees and YOLO mode</em></div>
-<div class="rung"><b>2</b><span>Local agent</span><em>An agent in your terminal</em></div>
-<div class="rung"><b>1</b><span>Autocomplete</span><em>AI suggests, you do the rest</em></div>
+<div class="rung up"><b>5</b><span>Agent swarm</span><em>Many agents, one problem</em><i>Isolation vs. speed vs. cost</i></div>
+<div class="rung up"><b>4</b><span>Agent factory</span><em>Tickets in, PRs out</em><i>Review &amp; verification</i></div>
+<div class="divide" style="display:flex"><span style="flex:1">▲ SANDBOXES · · · · · · · · · · · · · LAPTOP ▼</span><span>BOTTLENECK</span></div>
+<div class="rung"><b>3</b><span>Parallel local agents</span><em>Worktrees and YOLO mode</em><i>Your hardware</i></div>
+<div class="rung"><b>2</b><span>Local agent</span><em>An agent in your terminal</em><i>Your approvals</i></div>
+<div class="rung"><b>1</b><span>Autocomplete</span><em>AI suggests, you do the rest</em><i>Your typing</i></div>
 
 ---
 
@@ -194,60 +195,6 @@ style: |
 
 ---
 
-<p class="eyebrow">Stage 1 of 5 · On your laptop</p>
-
-## Autocomplete
-
-<div class="cards">
-<div><small>LOOKS LIKE</small>AI suggests. You type, run and check everything.</div>
-<div><small>WHAT BREAKS</small>You want the AI to run the code, not just write it.</div>
-<div><small>BOTTLENECK</small><span class="neck">Your typing</span></div>
-</div>
-<div class="stages"><div class="on">1 Autocomplete</div><div>2 Local agent</div><div>3 Parallel local</div><div>4 Agent factory</div><div>5 Agent swarm</div></div>
-
----
-
-<p class="eyebrow">Stage 2 of 5 · On your laptop</p>
-
-## Local agent
-
-<div class="cards">
-<div><small>LOOKS LIKE</small>An agent in your terminal runs commands. OS-level sandboxing lets you relax the prompts.</div>
-<div><small>WHAT BREAKS</small>You spend the day clicking Allow.</div>
-<div><small>BOTTLENECK</small><span class="neck">Your approvals</span></div>
-</div>
-<div class="stages"><div>1 Autocomplete</div><div class="on">2 Local agent</div><div>3 Parallel local</div><div>4 Agent factory</div><div>5 Agent swarm</div></div>
-
----
-
-<p class="eyebrow">Stage 3 of 5 · Laptop, straining</p>
-
-## Parallel local agents
-
-<div class="cards">
-<div><small>LOOKS LIKE</small>Several agents in worktrees and devcontainers, in YOLO mode.</div>
-<div><small>WHAT BREAKS</small>Ports, RAM, credentials and blast radius, all on one machine.</div>
-<div><small>BOTTLENECK</small><span class="neck">Your hardware</span></div>
-</div>
-<div class="stages"><div>1 Autocomplete</div><div>2 Local agent</div><div class="on">3 Parallel local</div><div>4 Agent factory</div><div>5 Agent swarm</div></div>
-
----
-
-<!-- _class: sbx -->
-
-<p class="eyebrow">Stage 4 of 5 · In sandboxes</p>
-
-## Agent factory
-
-<div class="cards">
-<div><small>LOOKS LIKE</small>Tickets in, PRs out. One disposable sandbox per task.</div>
-<div><small>WHAT BREAKS</small>One attempt per task isn't enough for hard problems.</div>
-<div><small>BOTTLENECK</small><span class="neck">Review &amp; verification</span></div>
-</div>
-<div class="stages"><div>1 Autocomplete</div><div>2 Local agent</div><div>3 Parallel local</div><div class="on">4 Agent factory</div><div>5 Agent swarm</div></div>
-
----
-
 <!-- _class: sbx -->
 
 <p class="eyebrow">Demo · Stage 4 in practice</p>
@@ -267,21 +214,6 @@ style: |
 </div>
 <img src="img/fife.svg" style="width:300px">
 </div>
-
----
-
-<!-- _class: sbx -->
-
-<p class="eyebrow">Stage 5 of 5 · In sandboxes</p>
-
-## Agent swarm
-
-<div class="cards">
-<div><small>LOOKS LIKE</small>Many agents on one problem: fan out, fork, compare.</div>
-<div><small>WHAT BREAKS</small>Cold start and cost per sandbox become architecture decisions.</div>
-<div><small>BOTTLENECK</small><span class="neck">Isolation vs. speed vs. cost</span></div>
-</div>
-<div class="stages"><div>1 Autocomplete</div><div>2 Local agent</div><div>3 Parallel local</div><div>4 Agent factory</div><div class="on">5 Agent swarm</div></div>
 
 ---
 
