@@ -1,22 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="220" viewBox="0 0 760 220" role="img" aria-labelledby="logo-title logo-desc">
-  <title id="logo-title">Modal Sandboxes</title>
-  <desc id="logo-desc">A terminal window inside a dashed sandbox boundary, next to the words Modal Sandboxes.</desc>
-  <defs>
-    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#a78bfa"/>
-      <stop offset="1" stop-color="#38bdf8"/>
-    </linearGradient>
-  </defs>
-  <rect width="760" height="220" rx="24" fill="#0f172a"/>
-  <!-- the dashed line is the sandbox boundary: the sandbox is isolated and disposable -->
-  <rect x="12" y="12" width="196" height="196" rx="36" fill="none" stroke="url(#accent)" stroke-width="4" stroke-dasharray="14 10"/>
-  <!-- the terminal window is the sandbox's computer -->
-  <rect x="42" y="52" width="136" height="116" rx="16" fill="#1e293b"/>
-  <path d="M42 84 V68 A16 16 0 0 1 58 52 H162 A16 16 0 0 1 178 68 V84 Z" fill="url(#accent)"/>
-  <circle cx="60" cy="68" r="5" fill="#f8fafc" fill-opacity="0.9"/>
-  <circle cx="76" cy="68" r="5" fill="#f8fafc" fill-opacity="0.9"/>
-  <circle cx="92" cy="68" r="5" fill="#f8fafc" fill-opacity="0.9"/>
-  <text x="58" y="130" font-family="Menlo, Consolas, 'Courier New', monospace" font-size="40" font-weight="700" fill="url(#accent)">&gt;_</text>
-  <text x="236" y="112" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="700" fill="#f8fafc">Modal Sandboxes</text>
-  <text x="238" y="152" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#94a3b8">Disposable cloud computers, driven from code</text>
+  <title id="logo-title">Your AI backlog resolver</title>
+  <desc id="logo-desc">A friendly golden retriever face next to the words Your AI backlog resolver.</desc>
+  <g transform="translate(20 10)">
+    <!-- ears -->
+    <path d="M52 62 C20 66 8 120 22 160 C30 182 54 178 62 158 C70 132 72 96 70 70 Z" fill="#B87326"/>
+    <path d="M148 62 C180 66 192 120 178 160 C170 182 146 178 138 158 C130 132 128 96 130 70 Z" fill="#B87326"/>
+    <!-- head -->
+    <path d="M100 24 C146 24 160 62 158 100 C156 140 136 176 100 178 C64 176 44 140 42 100 C40 62 54 24 100 24 Z" fill="#E3A04A"/>
+    <!-- forehead blaze -->
+    <path d="M100 30 C116 30 120 60 114 96 L86 96 C80 60 84 30 100 30 Z" fill="#EDB767"/>
+    <!-- muzzle -->
+    <ellipse cx="100" cy="132" rx="38" ry="32" fill="#F7DDAE"/>
+    <!-- eyes -->
+    <circle cx="74" cy="94" r="8" fill="#2B1A10"/>
+    <circle cx="126" cy="94" r="8" fill="#2B1A10"/>
+    <circle cx="77" cy="91" r="2.6" fill="#FFFFFF"/>
+    <circle cx="129" cy="91" r="2.6" fill="#FFFFFF"/>
+    <!-- brows -->
+    <path d="M64 80 Q74 74 84 79" stroke="#B87326" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M116 79 Q126 74 136 80" stroke="#B87326" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- tongue -->
+    <path d="M90 146 C90 166 110 166 110 146 Z" fill="#E86F7E"/>
+    <path d="M100 148 L100 158" stroke="#C95060" stroke-width="2" stroke-linecap="round"/>
+    <!-- mouth -->
+    <path d="M100 126 L100 138 M100 138 Q88 150 78 140 M100 138 Q112 150 122 140" stroke="#2B1A10" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- nose -->
+    <path d="M86 116 C86 108 114 108 114 116 C114 124 104 130 100 130 C96 130 86 124 86 116 Z" fill="#2B1A10"/>
+    <ellipse cx="94" cy="114" rx="4" ry="2.2" fill="#5A4030"/>
+  </g>
+  <text x="230" y="104" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#B87326">Your AI backlog resolver</text>
+  <text x="232" y="146" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" fill="#8A6A4A">Hand off the backlog. Get back pull requests that prove they work.</text>
 </svg>
