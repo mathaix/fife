@@ -12,8 +12,10 @@ with step("No network: block_network=True"):
 
 with step("Runaway loop: timeout=10"):
     sb = modal.Sandbox.create("python", "-c", "while True: pass", app=app, timeout=10)
-    sb.wait(raise_on_termination=False)
-    print(f"  sandbox killed after its 10s budget (returncode {sb.returncode})")
+    try:
+        sb.wait()
+    except modal.exception.SandboxTimeoutError:
+        print("  sandbox killed after its 10s budget (SandboxTimeoutError)")
 
 with step("Memory hog: hard limit of 256 MiB"):
     sb = modal.Sandbox.create(app=app, memory=(128, 256))

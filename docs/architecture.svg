@@ -15,7 +15,7 @@
   <g data-a-diagram-viewport="">
     <text class="a-node__title" x="30" y="35">Python manages the job. Claude Code manages the coding loop.</text>
     <g class="a-group"><rect x="20" y="65" width="265" height="685"/><text x="35" y="90">GitHub</text></g>
-    <g class="a-group"><rect x="315" y="65" width="470" height="165"/><text x="335" y="90">Outside sandbox · laptop or Actions</text></g>
+    <g class="a-group"><rect x="315" y="65" width="470" height="165"/><text x="335" y="90">Outside sandbox · laptop</text></g>
     <g class="a-group"><rect x="315" y="305" width="470" height="270"/><text x="335" y="330">Modal sandbox · fresh workspace per issue</text></g>
 
     <path class="a-edge" d="M265,156 H335" marker-end="url(#flow-arrow)"/>
@@ -43,9 +43,9 @@
     <path class="a-edge" d="M765,700 H875" marker-end="url(#flow-arrow)"/>
     <text class="a-edge__label" x="794" y="678">5</text>
 
-    <g class="a-node" data-a-node="issue" tabindex="0" role="button" data-a-title="GitHub issue" data-a-detail="A developer labels an issue agent. The local watcher polls for it, or an enabled GitHub Action invokes the Python orchestrator for this issue.">
+    <g class="a-node" data-a-node="issue" tabindex="0" role="button" data-a-title="GitHub issue" data-a-detail="A developer labels an issue agent. The local watcher polls for it and invokes the Python orchestrator for this issue.">
       <rect x="40" y="115" width="225" height="90"/>
-      <text class="a-node__title" x="55" y="145">Issue labelled agent</text><text class="a-node__sub" x="55" y="173">Polling or GitHub Action</text>
+      <text class="a-node__title" x="55" y="145">Issue labelled agent</text><text class="a-node__sub" x="55" y="173">Polled from your laptop</text>
     </g>
     <g class="a-node" data-a-node="orchestrator" tabindex="0" role="button" data-a-title="Python orchestrator" data-a-detail="agent/run.py owns the job lifecycle: claim issue, create sandbox, launch Claude Code, stream logs, request a test rerun, extract the patch and publish results. GitHub and Modal credentials stay here.">
       <rect x="335" y="110" width="430" height="100"/>

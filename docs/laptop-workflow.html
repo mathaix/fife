@@ -1319,12 +1319,12 @@ details.a-disclosure[open] > summary::before {
 <li><strong>Your laptop publishes the PR</strong> and shares the sandbox preview URL. You review and merge manually.</li>
 </ol></section>
 <section class="a-section"><h2 class="a-section__title">What stays where</h2><p class="a-prose"><strong>Laptop:</strong> Python, GitHub and Modal credentials, and the local publication checkout. <strong>Modal sandbox:</strong> Claude Code, cloned source, tests and the preview server. <strong>Anthropic:</strong> the Claude model.</p>
-<p class="a-prose">The subscription token is injected into Claude Code; sandbox code may access it. GitHub and Modal credentials stay outside. Keep <code>AGENT_TRIGGER</code> unset to leave the optional Actions trigger disabled.</p>
+<p class="a-prose">The subscription token is injected into Claude Code; sandbox code may access it. GitHub and Modal credentials stay outside.</p>
 <details class="a-disclosure"><summary>Demo limits and failure behavior</summary><p class="a-prose">Keep the laptop awake and the watcher running. The seen-issue tracking is in memory, not a durable queue or cross-process lock. Test reruns use agent-editable tests. The scaffold attempts failure comments, relabelling and cleanup for errors inside its job handler; it has not been hardened against all API or setup failures. Successful previews expire with the one-hour sandbox lifetime. The full Modal/GitHub/subscription flow has not yet been rehearsed.</p></details>
 </section>
 
 
-      <footer class="a-footnote">Based on the current modal-sandbox-demo scaffold. No Actions runner or hosted VM in this workflow; end-to-end execution and subscription authentication remain unverified.</footer>
+      <footer class="a-footnote">Based on the current modal-sandbox-demo scaffold. End-to-end execution and subscription authentication remain unverified.</footer>
     </main>
     <script>
 /* Devin artifact kit — self-contained behavior for standalone HTML artifacts.

@@ -48,7 +48,7 @@ A public repo of live demos for a developer talk that answers three questions:
 | A3.1 | `sample_app/`: a small FastAPI app with a passing pytest suite and 3 seeded issues (a bug, a new endpoint, validation) |
 | A3.2 | `agent/seed_issues.py` creates the labels and the 3 issues; `--reset` closes earlier agent PRs and issues and deletes their branches |
 | A3.3 | `agent/run.py --watch` polls for open issues labelled `agent` and handles each one concurrently, one sandbox per issue |
-| A3.4 | `agent/run.py --issue N` handles a single issue (used by the GitHub Action) |
+| A3.4 | `agent/run.py --issue N` handles a single issue (rehearsal / retry) |
 | A3.5 | Issue status shows in labels: `agent` → `agent-working` → `agent-done` / `agent-failed`, with a comment at pickup and at the end |
 | A3.6 | The sandbox image has git, Claude Code and the app's dependencies baked in; outbound traffic is allowed only to `api.anthropic.com` and `github.com` |
 | A3.7 | Claude Code runs headless (`claude -p`) with the issue as the prompt; its steps (tool calls, messages, final turns and cost) stream to the terminal, prefixed with the issue number |
@@ -56,7 +56,6 @@ A public repo of live demos for a developer talk that answers three questions:
 | A3.9 | The orchestrator takes `git diff` out of the sandbox, then commits and pushes it from outside; **the GitHub token never enters the sandbox** |
 | A3.10 | The orchestrator opens a PR with `Closes #N`, the agent's summary and the test result |
 | A3.11 | The app is started inside the sandbox and its tunnel URL (`/docs`) is posted on the PR and the issue; the sandbox expires after at most 1 hour |
-| A3.12 | `.github/workflows/agent.yml` runs A3.4 on `issues: labeled`; it's off unless the repo variable `AGENT_TRIGGER=actions` is set |
 
 ## Non-functional requirements
 
@@ -71,7 +70,7 @@ A public repo of live demos for a developer talk that answers three questions:
 |---|---|---|
 | `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET` | Orchestrator | All acts |
 | `CLAUDE_CODE_OAUTH_TOKEN` (or `ANTHROPIC_API_KEY`) | Claude Code, inside the sandbox | Act 3 |
-| `GH_DEMO_TOKEN` (or `GITHUB_TOKEN` in Actions) | Orchestrator | Act 3 |
+| `GH_DEMO_TOKEN` | Orchestrator | Act 3 |
 | `GITHUB_REPOSITORY` | Orchestrator | Act 3 |
 
 ## Acceptance criteria

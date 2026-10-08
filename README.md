@@ -9,17 +9,21 @@ GitHub issues into tested pull requests, with Claude Code working inside a sandb
 ## Setup
 
 ```bash
-pip install -r requirements.txt
+make setup                      # creates .venv (needs uv); `make` lists all commands
 modal setup                     # or export MODAL_TOKEN_ID / MODAL_TOKEN_SECRET
 ```
 
-For Act 3 also set:
+For Act 3, put these in a `.env` file in this folder (gitignored), one `KEY=value` per line, or export
+them in your shell (the shell wins). Full-line `#` comments are fine; inline comments are not.
+
+```
+GH_DEMO_TOKEN=github_pat_...
+```
 
 | Variable | What |
 |---|---|
-| `GITHUB_REPOSITORY` | `owner/repo` of your fork of this repo (public, so the sandbox can clone it) |
-| `GH_DEMO_TOKEN` | Fine-grained token for that repo: Contents, Issues, Pull requests (read/write) |
-| `CLAUDE_CODE_OAUTH_TOKEN` | From `claude setup-token`; runs on your Claude Pro/Max subscription. Or set `ANTHROPIC_API_KEY` instead |
+| `GH_DEMO_TOKEN` | Fine-grained GitHub token. The agent watches every repo this token can push to, so its repository access *is* the agent's scope. Permissions: Contents, Issues, Pull requests (read/write); leave Workflows off |
+| `CLAUDE_CODE_OAUTH_TOKEN` | From `claude setup-token`; runs on your Claude Pro/Max subscription. Or set `ANTHROPIC_API_KEY` instead. If neither is set, `run.py` runs `claude setup-token` for you and caches the token in `.env` (gitignored) until it expires |
 | `AGENT_MODEL` | Optional, defaults to `haiku` |
 
 ## Act 1: What is a sandbox?
@@ -47,13 +51,11 @@ your code ──Modal SDK──► Modal ──► sandbox 1 … sandbox N
 
 ![Laptop workflow: create an issue and label it agent; Python polls GitHub every five seconds, dispatches a Modal sandbox, verifies the result and publishes a PR with a preview.](docs/laptop-workflow.svg)
 
-Run `python agent/run.py --watch` on your laptop. Create an issue and label it `agent`;
-Python polls for newly seen issues and dispatches one sandbox per issue while continuing to watch.
-Claude Code works inside Modal, and your laptop verifies and publishes the results.
-Keep the laptop awake and `AGENT_TRIGGER` unset so the optional Actions workflow does not start duplicate jobs.
+Run `python agent/run.py --watch` on your laptop, then label an issue `agent` in any repo your token can
+push to. Claude Code works inside a Modal sandbox; your laptop verifies and publishes the result.
 
 Download [the interactive workflow diagram](docs/laptop-workflow.html) and open it locally to explore
-each step, or use [the SVG](docs/laptop-workflow.svg) in slides. No hosted VM or Actions runner is required.
+each step, or use [the SVG](docs/laptop-workflow.svg) in slides.
 
 ### Architecture
 
@@ -66,37 +68,66 @@ The Claude model runs remotely on Anthropic's servers.
 See [the architecture walkthrough and sequence diagram](docs/architecture.md) for the image build,
 per-issue lifecycle, credential boundaries, and failure path.
 
-```
-GitHub issue labelled `agent`
-   │  python agent/run.py --watch      (running on your laptop)
-   ▼
-Orchestrator (agent/run.py): holds the GitHub token
-   1. relabel the issue, comment "picked up"
-   2. create a sandbox: Claude Code + deps baked into the image,
-      egress allowed only to api.anthropic.com and github.com
-   3. clone the repo, run `claude -p "<issue>"` inside the sandbox, stream what it does
-   4. run pytest itself; don't trust the agent's word
-   5. pull out `git diff`, commit and push it from the orchestrator, open a PR that closes the issue
-   6. start the app in the sandbox and post its tunnel URL as a live preview
-```
+### The workflow, step by step
+
+There are three parts: **your laptop** runs `agent/run.py` and holds the GitHub token; **Modal** gives each
+issue a fresh, throwaway sandbox where Claude Code runs; **Claude** (the model) runs on Anthropic's servers.
+
+1. **Start up.** `python agent/run.py --watch`. If no Claude credential is set and `.env` has no valid
+   subscription token, it runs `claude setup-token` (you log in in the browser) and saves the token to `.env`.
+2. **Watch.** Every minute it asks GitHub which repos the token can push to (skipping archived repos and
+   repos with no open issues). Every 5 seconds it checks those repos for open issues labelled `agent`.
+3. **Pick up.** For each new labelled issue: relabel it `agent-working`, comment "Picked up", and clone the
+   issue's repo on the laptop with the token. Several issues run at once, each independently.
+4. **Sandbox.** Create a Modal sandbox and upload the clone into it. The sandbox gets the Claude credential
+   only, never the GitHub token, and can reach only `api.anthropic.com`, the PyPI/npm registries and the
+   jsDelivr/unpkg/cdnjs CDNs (so web pages render in browser tests).
+5. **Agent.** Claude Code gets the issue text and is told to: make the change; add tests next to the existing
+   ones (for a web app, an end-to-end Playwright browser test that records a video and screenshots when
+   `DEMO_DIR` is set); and write `/tmp/agent/verify.sh`, a script that runs the whole test suite. It doesn't
+   commit. Its steps stream to your terminal.
+6. **Verify, in the same sandbox.** The orchestrator runs `verify.sh` itself rather than trusting the agent's
+   word. If it fails, the output goes back to the same Claude session ("this failed, fix it"), and the check
+   runs again, up to 3 rounds; after that the issue is marked failed with the last output.
+7. **Check the change, on the laptop.** Pull the diff out, apply it to the laptop's clone, and refuse to
+   continue if it touches `.github/` (workflows run with the repo's secrets).
+8. **Publish.** Commit to branch `agent/issue-N` and push. If the passing run recorded anything, turn the
+   video into a GIF (GitHub plays those inline), take only genuine PNG/GIF files under 5 MB, and push them to
+   a separate branch `agent-media-issue-N`, so they show in the PR without being part of its changes. Shut
+   the sandbox down, open a PR that says "Closes #N" with the agent's summary, the verify result and script,
+   and the demo images; comment the link on the issue and relabel it `agent-done`.
+9. **On failure** at any step: shut the sandbox down, comment the reason on the issue, relabel it
+   `agent-failed`.
+
+**Your part:** label an issue `agent` (create the label in the repo the first time), wait, review the PR
+(with the recording from the passing test run, when the repo is a web app).
+The agent never merges.
 
 - **Safety:** the agent runs arbitrary commands with permissions skipped, which is fine because the
   sandbox is the boundary. It only holds the model credential; the GitHub token never enters it.
 - **Speed:** each issue gets a ready-to-go environment in seconds.
 - **Scale:** label three issues and three sandboxes work in parallel.
-- **Review:** the agent never merges. A human reviews the PR and clicks the preview.
 
-The agent works on `sample_app/`, a small FastAPI app with tests. To run it:
+### Running it
 
 ```bash
-python agent/seed_issues.py             # create the three demo issues (add --reset between rehearsals)
-python agent/run.py --watch             # then label issues `agent` in the GitHub UI, live
+make watch                      # every repo the token can push to
+make issue ISSUE=owner/name#3   # one issue, e.g. to retry a failed one
+make seed REPO=owner/name       # the three sample_app demo issues
+make demos                      # Acts 1 and 2
 ```
 
-**Optional Actions trigger:** `.github/workflows/agent.yml` runs the same script on `issues: labeled`, so
-there's no server to run: GitHub is the trigger, Modal is the compute. Enable it by setting the repo
-variable `AGENT_TRIGGER=actions`, adding the Modal and Claude secrets to the repo, and allowing
-"GitHub Actions to create and approve pull requests" in the repo's Actions settings.
+A failed issue isn't retried while `--watch` keeps running; restart it, or use `--issue`. Per-repo guidance
+for the agent (how to run the tests, code style) goes in a `CLAUDE.md` at the target repo's root, which Claude
+Code reads automatically.
+
+For the talk, `sample_app/` (a small FastAPI app with three seeded bugs) is a ready-made target. Copy it into
+a repo of its own, then:
+
+```bash
+python agent/seed_issues.py --repo owner/name    # create the three demo issues (add --reset between rehearsals)
+python agent/run.py --watch                      # then label issues `agent` in the GitHub UI, live
+```
 
 ## Tips for running live
 

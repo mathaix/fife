@@ -1,4 +1,4 @@
-"""Create the demo issues in the repo. `--label` labels them `agent` right away; `--reset` cleans up a previous run first."""
+"""Create the demo issues in a repo (`--repo owner/name`). `--label` labels them `agent` right away; `--reset` cleans up a previous run first."""
 
 import argparse
 import asyncio
@@ -20,28 +20,28 @@ ISSUES = [
         "`POST /books` accepts any `year`. Return a 422 validation error when `year` is later than the current year.",
     ),
 ]
-LABELS = {"agent": "5319e7", "agent-working": "fbca04", "agent-done": "0e8a16", "agent-failed": "d93f0b"}
 
 
-async def main(label: bool, reset: bool):
+async def main(repo: str, label: bool, reset: bool):
     if reset:
-        for pr in await gh.open_agent_prs():
-            await gh.close_pr_and_branch(pr)
+        for pr in await gh.open_agent_prs(repo):
+            await gh.close_pr_and_branch(repo, pr)
             print(f"closed PR #{pr['number']}")
-        for name in LABELS:
-            for issue in await gh.labelled_issues(name):
-                await gh.close_issue(issue["number"])
+        await gh.delete_media_branches(repo)
+        for name in gh.LABELS:
+            for issue in await gh.labelled_issues(repo, name):
+                await gh.close_issue(repo, issue["number"])
                 print(f"closed issue #{issue['number']}")
-    for name, color in LABELS.items():
-        await gh.ensure_label(name, color)
+    await gh.ensure_labels(repo)
     for title, body in ISSUES:
-        issue = await gh.create_issue(title, body, ["agent"] if label else [])
+        issue = await gh.create_issue(repo, title, body, ["agent"] if label else [])
         print(f"#{issue['number']} {title}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo", required=True, metavar="OWNER/NAME")
     parser.add_argument("--label", action="store_true")
     parser.add_argument("--reset", action="store_true")
     args = parser.parse_args()
-    asyncio.run(main(args.label, args.reset))
+    asyncio.run(main(args.repo, args.label, args.reset))
