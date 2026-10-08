@@ -46,7 +46,7 @@ GH_DEMO_TOKEN=github_pat_...
 |---|---|
 | `GH_DEMO_TOKEN` | Fine-grained GitHub token. Agents watch every repo this token can push to, so its repository access *is* their scope. Permissions: Contents, Issues, Pull requests (read/write); leave Workflows off |
 | `CLAUDE_CODE_OAUTH_TOKEN` | From `claude setup-token`; runs on your Claude Pro/Max subscription. Or set `ANTHROPIC_API_KEY` instead. If neither is set, `run.py` runs `claude setup-token` for you and caches the token in `.env` (gitignored) until it expires |
-| `AGENT_MODEL` | Optional, defaults to `haiku` |
+| `AGENT_MODEL` | Optional, defaults to `sonnet` |
 
 ## Using it
 

@@ -32,12 +32,13 @@ import gh
 import httpx
 import modal
 
-MODEL = os.environ.get("AGENT_MODEL", "haiku")
+MODEL = os.environ.get("AGENT_MODEL", "sonnet")
 MODEL_AUTH = ("ANTHROPIC_API_KEY", "CLAUDE_CODE_OAUTH_TOKEN")
 WORKDIR = "/repo"
 VERIFY = "/tmp/agent/verify.sh"  # written by the agent, outside the repo so it isn't part of the PR
 VERIFY_CMD = f"rm -rf /tmp/demo && mkdir -p /tmp/demo && DEMO_DIR=/tmp/demo timeout 900 sh {VERIFY}"
 MAX_ROUNDS = 3  # verify runs; after a failure the agent gets the output and another go
+SKIPPED = re.compile(r"\b([1-9]\d*) skipped\b")  # pytest summary: a skipped test is an unverified test
 DEMO_DIR = "/tmp/demo"
 MEDIA_MAGIC = {".png": b"\x89PNG\r\n\x1a\n", ".gif": b"GIF8"}  # the only files accepted from the sandbox for the PR
 MAX_MEDIA_BYTES = 5_000_000
@@ -114,25 +115,34 @@ def task_prompt(issue: dict) -> str:
 
 {issue['body'] or ''}
 
-1. Make the change. Install any dependencies you need.
+If the repository has an AGENTS.md or CLAUDE.md, follow it; it wins over these defaults.
+
+1. List every acceptance criterion and scope item of the issue (your ledger) and make the change for each.
+   Install any dependencies you need; keep downloads, caches and scratch files under /tmp so only the change
+   lands in the repository.
 2. Add tests for it next to the project's existing tests; they are part of the change. If the project is a web
    app, include an end-to-end browser test using Python Playwright (headless Chromium is installed) that starts
    the app, uses the new behaviour and checks it works. When the environment variable DEMO_DIR is set, that
    browser test must record a video into it (browser.new_context(record_video_dir=os.environ["DEMO_DIR"])) and
    save 1-3 PNG screenshots there that show the change; keep the recorded part under 10 seconds.
 3. Write {VERIFY}: a shell script that, run from the repository root, installs what the tests need and runs
-   the project's whole test suite including your new tests, exiting non-zero on any failure.
+   the project's whole test suite including your new tests, exiting non-zero on any failure. Start any service
+   the tests need (e.g. a database) so no test is skipped: a run that reports skipped tests counts as failed.
 4. After you finish, `{VERIFY_CMD}` is run and you get the output back if it fails. Run it that way yourself
    until it passes, and read the screenshots to check they show the change.
 
-Do not commit. Finish with a two-sentence summary of what you changed."""
+Changes under .github/ are discarded before the PR is pushed. If CI needs a change, write the exact change
+under a "Needs a maintainer" heading in your summary instead of claiming it.
+
+Do not commit. Finish with your ledger: one line per acceptance criterion marked done, not done or needs a
+maintainer, naming the test or file that proves it. Claim only what is in the final diff."""
 
 
 def retry_prompt(code: int, out: str) -> str:
     return (
         f"`{VERIFY_CMD}` failed (exit {code}):\n```\n{out[-3000:]}\n```\n"
-        "Fix the code or tests so it passes; don't weaken or skip the checks. "
-        "Finish with a two-sentence summary of everything you changed."
+        "Fix the code or tests so it passes, keeping every check in place and running (skipped tests count as failures). "
+        "Finish with your updated ledger: one line per acceptance criterion marked done, not done or needs a maintainer."
     )
 
 
@@ -246,6 +256,8 @@ async def handle(repo: str, number: int, secret: modal.Secret) -> None:
             # The agent's own "tests pass" isn't trusted: the orchestrator runs its verify script and loops on failure.
             for attempt in range(1, MAX_ROUNDS + 1):
                 code, out = await sh(sb, "sh", "-c", f"{VERIFY_CMD} 2>&1")
+                if code == 0 and (skips := SKIPPED.search(out)):
+                    code, out = 1, f"{out}\n\nverify exited 0 but {skips.group(1)} test(s) were skipped; make them run."
                 if code == 0:
                     break
                 log(f"\033[33mverify failed (round {attempt}/{MAX_ROUNDS}):\033[0m {last_line(out)}")
@@ -261,6 +273,7 @@ async def handle(repo: str, number: int, secret: modal.Secret) -> None:
             await sh(sb, "git", "add", "-A")
             # never ship the agent's edits to CI config: workflows in the target repo run with its secrets
             _, diff = await sh(sb, "git", "diff", "--cached", "--binary", "--", ".", ":!.github")
+            _, dropped = await sh(sb, "git", "diff", "--cached", "--", ".github")  # shown to the maintainer, never pushed
             if not diff.strip():
                 raise AgentFailed("The agent made no changes.")
 
@@ -284,7 +297,15 @@ async def handle(repo: str, number: int, secret: modal.Secret) -> None:
             except Exception as e:  # a missing demo shouldn't block the PR
                 log(f"demo skipped: {e!r}")
             await sb.terminate.aio()
-            pr = await gh.open_pr(repo, branch, title, f"Closes #{number}\n\n{summary}{tests}{demo}")
+            ci = ""
+            if dropped.strip():
+                ci = (
+                    "\n\n**Not included: CI changes.** The agent edited `.github/`, which agents may not push. "
+                    "Review and apply by hand if wanted:\n\n<details><summary>dropped diff</summary>\n\n"
+                    f"```diff\n{dropped.strip()[-6000:]}\n```\n</details>"
+                )
+                log("\033[33mdropped the agent's .github/ changes (shown in the PR)\033[0m")
+            pr = await gh.open_pr(repo, branch, title, f"Closes #{number}\n\n{summary}{tests}{ci}{demo}")
             await gh.comment(repo, number, f"Opened {pr}")
             await gh.relabel(repo, number, "agent-working", "agent-done")
             log(f"\033[1;32mPR {pr}\033[0m")

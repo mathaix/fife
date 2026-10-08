@@ -60,7 +60,7 @@ A public repo of live demos for a developer talk that answers three questions:
 ## Non-functional requirements
 
 - **Security:** the sandbox holds only the model credential (`CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`), injected as a `modal.Secret` into the agent process alone. GitHub and Modal credentials stay with the orchestrator.
-- **Cost:** defaults to the `haiku` model on a Claude subscription token; `AGENT_MODEL` overrides it.
+- **Cost:** defaults to the `sonnet` model on a Claude subscription token; `AGENT_MODEL` overrides it.
 - **Reliability on stage:** the seeded issues are small and clearly specified. After one rehearsal, Modal has the images cached. A recorded fallback run exists.
 - **Simplicity:** dependencies are only `modal` and `httpx`; there's no framework, and each file reads top to bottom.
 
