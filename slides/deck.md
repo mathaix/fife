@@ -56,7 +56,7 @@ style: |
 # Scale Software<br>Development with AI<br>Sandboxes
 
 <p class="orange" style="font-size:28px;margin:0 0 30px">From laptop steering to agent swarms</p>
-<p class="muted" style="font-size:20px">Mathew Mathew · CTO, Claramap.com</p>
+<p class="muted" style="font-size:20px">Mathew Mathew · CTO, <a href="https://claramap.com" style="color:inherit">Claramap.com</a></p>
 
 <svg style="position:absolute;right:90px;top:90px" width="260" height="210" viewBox="0 0 260 210"><rect x="0" y="168" width="34" height="42" rx="4" fill="#ff7a3d"/><rect x="56" y="126" width="34" height="84" rx="4" fill="#ff7a3d"/><rect x="112" y="84" width="34" height="126" rx="4" fill="#ff7a3d"/><rect x="168" y="42" width="34" height="168" rx="4" fill="#6aa8ff"/><rect x="224" y="0" width="34" height="210" rx="4" fill="#6aa8ff"/></svg>
 
@@ -67,13 +67,14 @@ style: |
 <div>
 <p class="eyebrow">Let's connect</p>
 <h2 style="margin:0">Mathew Mathew</h2>
-<p class="blue" style="font-size:26px;margin:6px 0 22px">CTO &amp; Founder, Claramap</p>
+<p class="blue" style="font-size:26px;margin:6px 0 22px">CTO &amp; Founder, <a href="https://claramap.com" style="color:inherit">Claramap</a></p>
 <p style="font-size:22px">Claramap helps companies design, build and run <b>agentic systems</b> in production.</p>
 <p class="muted" style="font-size:21px">20+ years as a software engineer and data scientist at IBM Cloud, Amdocs, AT&amp;T, SolarWinds and Discover.</p>
 <div style="display:flex;gap:40px;align-items:center;margin-top:20px">
 <img src="img/qr.png" style="width:180px;border-radius:12px">
 <div style="font-family:'JetBrains Mono';font-size:19px;line-height:2.1">
 <span class="muted" style="font-size:15px;letter-spacing:.12em">SCAN FOR THE SLIDES</span><br>
+<a href="https://claramap.com">claramap.com</a><br>
 <a href="https://www.linkedin.com/in/mathewma">linkedin.com/in/mathewma</a><br>
 <a href="https://github.com/mathaix/fife">github.com/mathaix/fife</a><br>
 <a href="https://github.com/mathaix/signals">github.com/mathaix/signals</a>
@@ -288,5 +289,5 @@ style: |
 
 <div style="position:absolute;bottom:80px">
 <p style="font-size:26px;margin:0 0 8px">Thank you · Questions?</p>
-<p class="muted" style="font-family:'JetBrains Mono';font-size:18px;margin:0">Mathew Mathew · mmathew@claramap.com</p>
+<p class="muted" style="font-family:'JetBrains Mono';font-size:18px;margin:0">Mathew Mathew · <a href="mailto:mmathew@claramap.com" style="color:inherit">mmathew@claramap.com</a> · <a href="https://claramap.com" style="color:inherit">claramap.com</a></p>
 </div>
