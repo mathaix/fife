@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/logo.svg" alt="Modal Sandboxes logo: a terminal window inside a dashed sandbox boundary" width="640">
+</p>
+
 # Modal Sandboxes: what they are, why they're useful, and how they speed up development
 
 Runnable demos for a developer talk on [Modal Sandboxes](https://modal.com/docs/guide/sandbox):
@@ -25,6 +29,28 @@ GH_DEMO_TOKEN=github_pat_...
 | `GH_DEMO_TOKEN` | Fine-grained GitHub token. The agent watches every repo this token can push to, so its repository access *is* the agent's scope. Permissions: Contents, Issues, Pull requests (read/write); leave Workflows off |
 | `CLAUDE_CODE_OAUTH_TOKEN` | From `claude setup-token`; runs on your Claude Pro/Max subscription. Or set `ANTHROPIC_API_KEY` instead. If neither is set, `run.py` runs `claude setup-token` for you and caches the token in `.env` (gitignored) until it expires |
 | `AGENT_MODEL` | Optional, defaults to `haiku` |
+
+## Repository layout
+
+| Path | What's there |
+|---|---|
+| `demos/` | Acts 1 and 2: one short script per idea, run against Modal |
+| `agent/` | Act 3: the issue agent (`run.py`), the GitHub client (`gh.py`) and the demo issue seeder (`seed_issues.py`) |
+| `sample_app/` | The FastAPI bookshelf app the agent works on, with its pytest suite |
+| `docs/` | Architecture walkthrough, diagrams and the interactive workflow page |
+| `Makefile` | Shortcuts: `make setup`, `make watch`, `make issue`, `make seed`, `make demos` |
+| `run_all.sh` | Smoke-runs the Act 1 and Act 2 demos (needs Modal credentials) |
+| `PRD.md` | Requirements the demos are built against |
+
+## Running the tests
+
+The sample app's tests cover the endpoints the agent changes. They also check that the README and
+docs link to files that exist and that the commands they show are real. No Modal account is needed:
+
+```bash
+pip install -r sample_app/requirements.txt
+cd sample_app && python -m pytest -q
+```
 
 ## Act 1: What is a sandbox?
 
