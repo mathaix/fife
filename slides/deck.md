@@ -48,6 +48,11 @@ style: |
   table { display:table; width:100%; font-size:21px; border-collapse:collapse; }
   section.light th, section.light td { background:#f3efe6; border:1px solid #c9c3b8; padding:10px 14px; color:#161b22; text-align:left; }
   section.light th { background:#e3ded5; } section.light tr:nth-child(even) td { background:#e9e4da; }
+  table.vendors { font-size:19px; } table.vendors td, table.vendors th { padding:7px 12px; vertical-align:middle; }
+  table.vendors img { width:30px; height:30px; object-fit:contain; border-radius:6px; display:block; }
+  table.vendors .px { text-align:right; font-family:'JetBrains Mono'; font-weight:700; white-space:nowrap; }
+  .new { font-family:'JetBrains Mono'; font-size:12px; background:#c2410c; color:#fff; border-radius:4px; padding:2px 6px; margin-left:6px; vertical-align:middle; }
+  .foot { font-size:15px; color:#5b6370; margin-top:14px; }
 ---
 
 <!-- _class: title -->
@@ -130,13 +135,17 @@ style: |
 
 ## Who builds the sandboxes
 
-| Tool | Isolation | Notable |
-|---|---|---|
-| Firecracker | microVM | Open-source building block from AWS; not a product |
-| Docker | Container | Dev default; not enough alone for untrusted code |
-| E2B | Firecracker microVM | Agent-focused code-interpreter SDK |
-| Modal | gVisor | Built for scale; locked down by default |
-| Daytona | Container (Sysbox) | Fast creation; egress allowlists; placeholder secrets |
+<table class="vendors">
+<tr><th></th><th>Tool</th><th>Isolation</th><th class=px>$/hr*</th><th>Notable</th></tr>
+<tr><td><img src="img/logos/strands.png"></td><td><b>Strands Box <span class=new>NEW</span></b></td><td>OS sandbox + policy</td><td class=px>Free · OSS</td><td>From AWS, Oct 7; policies see the agent's history</td></tr>
+<tr><td><img src="img/logos/docker.svg"></td><td><b>Docker</b></td><td>Container</td><td class=px>Free</td><td>Dev default; not enough alone for untrusted code</td></tr>
+<tr><td><img src="img/logos/daytona.png"></td><td><b>Daytona</b></td><td>Container (Sysbox)</td><td class=px>$0.08</td><td>Fast creation; egress allowlists; placeholder secrets</td></tr>
+<tr><td><img src="img/logos/modal.svg"></td><td><b>Modal</b></td><td>gVisor</td><td class=px>$0.12</td><td>Built for scale; locked down by default</td></tr>
+<tr><td><img src="img/logos/e2b.jpg"></td><td><b>E2B</b></td><td>Firecracker microVM</td><td class=px>$0.08</td><td>Agent-focused code-interpreter SDK</td></tr>
+<tr><td><img src="img/logos/aws.png"></td><td><b>Lambda MicroVMs</b></td><td>Firecracker microVM</td><td class=px>$0.13</td><td>Suspend and resume; sessions up to 8h</td></tr>
+<tr><td><img src="img/logos/firecracker.svg"></td><td><b>Firecracker</b></td><td>microVM</td><td class=px>Free</td><td>Open-source building block from AWS</td></tr>
+</table>
+<p class="foot">* 1 vCPU + 2 GiB for one hour, US list prices, Oct 2026. Ordered as on the isolation spectrum: faster start → stronger boundary.</p>
 
 ---
 
