@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/logo.svg" alt="A golden retriever face next to the words Your AI backlog resolver" width="640">
+  <img src="docs/logo.svg" alt="Fife logo: a golden retriever face next to the words Fife, Your AI backlog resolver" width="640">
 </p>
 
-# Your AI backlog resolver
+# Fife: your AI backlog resolver
 
 **Stop steering coding agents. Start managing them.**
 

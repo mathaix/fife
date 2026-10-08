@@ -19,7 +19,7 @@ def section(text: str, title: str) -> str:
 def test_logo_is_svg_with_title():
     root = ET.parse(ROOT / "docs" / "logo.svg").getroot()
     assert root.tag == f"{SVG_NS}svg"
-    assert root.find(f"{SVG_NS}title").text == "Your AI backlog resolver"
+    assert root.find(f"{SVG_NS}title").text == "Fife"
 
 
 def test_local_links_and_images_resolve():
