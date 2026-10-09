@@ -6,7 +6,7 @@
 
 **Stop steering coding agents. Start managing them.**
 
-Working with a coding agent today means sitting with it: one session, one prompt at a time, watching and
+Working with coding agents for most of us means sitting with them: one session, one prompt at a time, watching and
 correcting. You can only steer one agent at once, so you're the bottleneck.
 
 Fife lets you manage your agents instead. Hand off work the way you would to a team: write a clear issue
