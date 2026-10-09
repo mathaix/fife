@@ -2,7 +2,7 @@
 PY := .venv/bin/python
 VENV := .venv/.installed
 
-.PHONY: help setup watch issue seed demos slides
+.PHONY: help setup watch issue seed demos slides carousel
 
 help: ## list the commands
 	@grep -E '^[a-z]+:.*## ' Makefile | sed 's/:.*## /\t/'
@@ -29,3 +29,7 @@ demos: $(VENV) ## run the Act 1 and Act 2 sandbox demos
 
 slides: ## rebuild slides/index.html (the web version of the talk) from slides/deck.md
 	npx -y @marp-team/marp-cli@4.1.2 slides/deck.md --html --allow-local-files -o slides/index.html < /dev/null
+
+carousel: ## build slides/carousel.pdf (the deck with page numbers) to upload as a LinkedIn carousel
+	awk '{print} /^marp: true$$/{print "paginate: true"}' slides/deck.md > slides/.carousel.md
+	npx -y @marp-team/marp-cli@4.1.2 slides/.carousel.md --html --allow-local-files --pdf -o slides/carousel.pdf < /dev/null; rm -f slides/.carousel.md

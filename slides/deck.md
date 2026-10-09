@@ -47,6 +47,7 @@ style: |
   .axis + div { display:flex; justify-content:space-between; font-family:'JetBrains Mono'; font-size:15px; letter-spacing:.1em; color:var(--muted); }
   table { display:table; width:100%; font-size:21px; border-collapse:collapse; }
   section.light th, section.light td { background:#f3efe6; border:1px solid #c9c3b8; padding:10px 14px; color:#161b22; text-align:left; }
+  section[data-marpit-pagination]::after { font-family:'JetBrains Mono',monospace; font-size:16px; color:var(--muted); content:attr(data-marpit-pagination) ' / ' attr(data-marpit-pagination-total); }
   section.light th { background:#e3ded5; } section.light tr:nth-child(even) td { background:#e9e4da; }
   table.vendors { font-size:19px; } table.vendors td, table.vendors th { padding:7px 12px; vertical-align:middle; }
   table.vendors img { width:30px; height:30px; object-fit:contain; border-radius:6px; display:block; }
