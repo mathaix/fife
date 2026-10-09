@@ -15,10 +15,10 @@ requests that are tested and show that the change works. You review results, not
 
 ## Background
 
-Fife shows how to build a software factory with [Modal](https://modal.com) as the agent runtime and headless
+Fife demonstrates how to build a software factory with [Modal](https://modal.com) as the agent runtime and headless
 Claude Code as the coding agent. Your Claude subscription token is injected into each sandbox, so the agents
-run on your subscription. It's the demo from *Scale Software Development with AI Sandboxes* (EvoNexus,
-Oct 8, 2026). **[View the slides](https://mathaix.github.io/fife/slides/)** ·
+run on your subscription.
+**[View the slides](https://mathaix.github.io/fife/slides/)** ·
 [PDF](https://mathaix.github.io/fife/slides/carousel.pdf)
 
 **TL;DR:** to build your own software factory you need two ideas:
