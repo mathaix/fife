@@ -13,6 +13,22 @@ This project lets you manage agents instead. Hand off work the way you would to 
 and label it. Agents pick it up, each on its own disposable cloud computer, and come back with finished pull
 requests that are tested and show that the change works. You review results, not sessions.
 
+## The talk
+
+Fife is the demo from *Scale Software Development with AI Sandboxes* (EvoNexus, Oct 8, 2026): how teams climb
+from autocomplete on a laptop to fleets of agents in the cloud, what breaks at each step, and who builds the
+sandboxes and what they cost. **[View the slides](https://mathaix.github.io/fife/slides/)** ·
+[PDF](https://mathaix.github.io/fife/slides/carousel.pdf)
+
+**TL;DR:** to build your own software factory you need two ideas:
+
+1. **Agent sandboxes.** A disposable, isolated computer per task, so an agent can run anything without
+   touching your machine or your secrets. Fife creates a fresh [Modal](https://modal.com) sandbox per issue.
+2. **Headless agent execution** (e.g. `claude -p`). The agent runs from a script with no one at the keyboard,
+   so issues, cron jobs or webhooks can start it. Fife runs `claude -p` inside each sandbox.
+
+Put the two together and every ticket becomes its own agent run, in parallel, with a pull request at the end.
+
 ## Why it's useful
 
 - **Your backlog becomes work in progress.** The small fixes, docs gaps and missing tests nobody gets to are
