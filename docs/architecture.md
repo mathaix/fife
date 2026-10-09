@@ -41,7 +41,7 @@ sequenceDiagram
     participant Sandbox as Sandbox with Claude Code installed
     participant Claude as Claude model (Anthropic)
 
-    Note over Python,Modal: Image definition installs CLI and dependencies; Modal caches the build
+    Note over Python,Modal: Image definition installs CLI and dependencies, and Modal caches the build
     Developer->>GitHub: Label an issue agent
     GitHub-->>Python: Polling result
     Python->>GitHub: Read issue, mark working, comment
@@ -56,7 +56,7 @@ sequenceDiagram
         Sandbox-->>Python: Stream agent events
     end
     Sandbox-->>Python: Agent exits
-    Python->>Sandbox: Rerun AGENT_TEST_CMD (if set); collect git diff
+    Python->>Sandbox: Rerun AGENT_TEST_CMD (if set), collect git diff
     Sandbox-->>Python: Exit code, test output and patch
     alt Tests pass and patch is nonempty
         Python->>GitHub: Commit and push patch from outside sandbox

@@ -16,7 +16,7 @@
     <text class="a-node__title" x="30" y="35">Python manages the job. Claude Code manages the coding loop.</text>
     <g class="a-group"><rect x="20" y="65" width="265" height="685"/><text x="35" y="90">GitHub</text></g>
     <g class="a-group"><rect x="315" y="65" width="470" height="165"/><text x="335" y="90">Outside sandbox · laptop</text></g>
-    <g class="a-group"><rect x="315" y="305" width="470" height="270"/><text x="335" y="330">Modal sandbox · fresh workspace per issue</text></g>
+    <g class="a-group"><rect x="315" y="305" width="470" height="270"/><text x="335" y="330">Modal sandbox · per issue</text></g>
 
     <path class="a-edge" d="M265,156 H335" marker-end="url(#flow-arrow)"/>
     <text class="a-edge__label" x="285" y="135">1</text>
@@ -26,12 +26,12 @@
     <path class="a-edge" d="M765,155 H875" marker-end="url(#flow-arrow)"/>
     <text class="a-edge__label" x="792" y="135">define</text>
     <path class="a-edge" d="M1005,245 V300 H810 V350 H785" marker-end="url(#flow-arrow)"/>
-    <text class="a-edge__label" x="895" y="285">boot from image</text>
+    <text class="a-edge__label" x="1018" y="280">boot from image</text>
     <path class="a-edge" d="M265,442 H335" marker-end="url(#flow-arrow)"/>
-    <text class="a-edge__label" x="285" y="424">clone</text>
+    <text class="a-edge__label" x="281" y="424">upload</text>
     <path class="a-edge" d="M550,425 V465" marker-end="url(#flow-arrow)"/>
     <path class="a-edge" d="M735,500 H765 V390 H735" marker-end="url(#flow-arrow)"/>
-    <text class="a-edge__label" x="565" y="450">read → edit → test → repeat</text>
+    <text class="a-edge__label" x="562" y="450">edit → test → repeat</text>
     <path class="a-edge" d="M745,382 H875" marker-end="url(#flow-arrow)"/>
     <text class="a-edge__label" x="805" y="365">request</text>
     <path class="a-edge" d="M875,410 H745" marker-end="url(#flow-arrow)"/>
@@ -55,9 +55,9 @@
       <rect x="875" y="100" width="300" height="145"/>
       <text class="a-node__title" x="892" y="130">Reusable Modal image</text><text class="a-node__sub" x="892" y="161">Claude Code CLI installed here</text><text class="a-node__sub" x="892" y="185">Python + Git + app dependencies</text><text class="a-node__sub" x="892" y="220">Built and cached · no secrets</text>
     </g>
-    <g class="a-node" data-a-node="repo" tabindex="0" role="button" data-a-title="Public repository" data-a-detail="Python instructs the sandbox to clone the public demo repository for every issue. No GitHub token is needed inside the sandbox to clone it.">
+    <g class="a-node" data-a-node="repo" tabindex="0" role="button" data-a-title="Target repository" data-a-detail="Python clones the target repository with its GitHub token for every issue and uploads the clone into the sandbox. Private repos work, and the token never enters the sandbox.">
       <rect x="40" y="395" width="225" height="95"/>
-      <text class="a-node__title" x="55" y="427">Public repository</text><text class="a-node__sub" x="55" y="454">Clone per issue</text><text class="a-node__sub" x="55" y="477">No GitHub token required</text>
+      <text class="a-node__title" x="55" y="427">Target repository</text><text class="a-node__sub" x="55" y="454">Cloned by Python per issue</text><text class="a-node__sub" x="55" y="477">No token in the sandbox</text>
     </g>
     <g class="a-node" data-a-node="cli" tabindex="0" role="button" data-a-title="Claude Code CLI" data-a-detail="The already-installed CLI runs inside the sandbox via claude -p with the issue prompt. It calls Anthropic's remote model, executes tools locally and streams agent events back to Python. The subscription token or API key is injected into this process.">
       <rect x="335" y="355" width="410" height="70"/>
