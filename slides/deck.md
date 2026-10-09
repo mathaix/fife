@@ -138,7 +138,7 @@ style: |
 
 <table class="vendors">
 <tr><th></th><th>Tool</th><th>Isolation</th><th class=px>$/hr*</th><th>Notable</th></tr>
-<tr><td><img src="img/logos/strands.png"></td><td><b>Strands Box <span class=new>NEW</span></b></td><td>OS sandbox + policy</td><td class="px byo">OSS · your Mac</td><td>From AWS, Oct 7; policies see the agent's history</td></tr>
+<tr><td><img src="img/logos/strands.png"></td><td><b>Strands Box <span class=new>PREVIEW</span></b></td><td>OS sandbox + policy</td><td class="px byo">OSS · your Mac</td><td>From AWS, Oct 7; policies see the agent's history</td></tr>
 <tr><td><img src="img/logos/docker.svg"></td><td><b>Docker</b></td><td>Container</td><td class="px byo">OSS · your infra</td><td>Dev default; not enough alone for untrusted code</td></tr>
 <tr><td><img src="img/logos/daytona.png"></td><td><b>Daytona</b></td><td>Container (Sysbox)</td><td class=px>$0.08</td><td>Fast creation; egress allowlists; placeholder secrets</td></tr>
 <tr><td><img src="img/logos/modal.svg"></td><td><b>Modal</b></td><td>gVisor</td><td class=px>$0.12</td><td>Built for scale; locked down by default</td></tr>
