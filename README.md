@@ -9,7 +9,7 @@
 Working with a coding agent today means sitting with it: one session, one prompt at a time, watching and
 correcting. You can only steer one agent at once, so you're the bottleneck.
 
-This project lets you manage agents instead. Hand off work the way you would to a team: write a clear issue
+Fife lets you manage your agents instead. Hand off work the way you would to a team: write a clear issue
 and label it. Agents pick it up, each on its own disposable cloud computer, and come back with finished pull
 requests that are tested and show that the change works. You review results, not sessions.
 
