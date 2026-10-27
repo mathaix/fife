@@ -25,12 +25,13 @@ import subprocess
 import tarfile
 import tempfile
 import time
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import gh
 import httpx
 import modal
+import runs
 
 MODEL = os.environ.get("AGENT_MODEL", "sonnet")
 MODEL_AUTH = ("ANTHROPIC_API_KEY", "CLAUDE_CODE_OAUTH_TOKEN")
@@ -40,6 +41,11 @@ VERIFY_CMD = f"rm -rf /tmp/demo && mkdir -p /tmp/demo && DEMO_DIR=/tmp/demo time
 MAX_ROUNDS = 3  # verify runs; after a failure the agent gets the output and another go
 SKIPPED = re.compile(r"\b([1-9]\d*) skipped\b")  # pytest summary: a skipped test is an unverified test
 DEMO_DIR = "/tmp/demo"
+VOLUME = "agent-sessions"  # Modal Volume holding the Claude sessions: <repo>/issue-N/<session-id>.jsonl
+CLAUDE_PROJECTS = "/root/.claude/projects"
+SESSION_ID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
+PUSH_ATTEMPTS = 3
+COMMENT_POLL_SECONDS = 20
 MEDIA_MAGIC = {".png": b"\x89PNG\r\n\x1a\n", ".gif": b"GIF8"}  # the only files accepted from the sandbox for the PR
 MAX_MEDIA_BYTES = 5_000_000
 GIT_IDENT = ["-c", "user.name=sandbox-agent", "-c", "user.email=sandbox-agent@users.noreply.github.com"]
@@ -138,6 +144,14 @@ Do not commit. Finish with your ledger: one line per acceptance criterion marked
 maintainer, naming the test or file that proves it. Claim only what is in the final diff."""
 
 
+def continue_prompt(instructions: str) -> str:
+    return (
+        f"New instructions from a maintainer on this issue/PR:\n\n{instructions}\n\n"
+        f"Make the change, keep every check in place, and run `{VERIFY_CMD}` until it passes (skipped tests count as failures). "
+        "Do not commit. Finish with your updated ledger: one line per acceptance criterion marked done, not done or needs a maintainer."
+    )
+
+
 def retry_prompt(code: int, out: str) -> str:
     return (
         f"`{VERIFY_CMD}` failed (exit {code}):\n```\n{out[-3000:]}\n```\n"
@@ -146,12 +160,12 @@ def retry_prompt(code: int, out: str) -> str:
     )
 
 
-async def run_claude(sb: modal.Sandbox, prompt: str, secret: modal.Secret, log, resume: str | None = None) -> tuple[str, str]:
+async def run_claude(sb: modal.Sandbox, prompt: str, secret: modal.Secret, log, resume: str | None = None) -> tuple[str, str, float]:
     """Run Claude Code in the sandbox, streaming its steps; `resume` continues an earlier session.
-    Returns its final summary and the session id."""
+    Returns its final summary, the session id and the cost in USD."""
     cmd = ["claude", "-p", prompt, "--model", MODEL, "--dangerously-skip-permissions", "--output-format", "stream-json"]
     p = await sb.exec.aio(*cmd, "--verbose", *(["--resume", resume] if resume else []), workdir=WORKDIR, secrets=[secret])
-    summary, session, buffer = "", resume, ""
+    summary, session, buffer, cost = "", resume, "", 0.0
     async for chunk in p.stdout:
         buffer += chunk
         *lines, buffer = buffer.split("\n")
@@ -166,10 +180,11 @@ async def run_claude(sb: modal.Sandbox, prompt: str, secret: modal.Secret, log, 
                         log(f"\033[33m{block['name']}\033[0m {args[:100]}")
             elif event["type"] == "result":
                 summary, session = event.get("result", ""), event.get("session_id", session)
+                cost = event.get("total_cost_usd", 0) or 0
                 log(f"agent finished: {event.get('num_turns')} turns, ${event.get('total_cost_usd', 0):.3f}")
     if await p.wait.aio() != 0:
         raise AgentFailed(f"Claude Code exited with an error:\n```\n{(await p.stderr.read.aio())[-1500:]}\n```")
-    return summary, session
+    return summary, session, cost
 
 
 def git(d: str, *args: str, stdin: bytes | None = None) -> str:
@@ -230,19 +245,97 @@ def last_line(text: str) -> str:
     return (text.strip().splitlines() or [""])[-1]
 
 
-async def handle(repo: str, number: int, secret: modal.Secret) -> None:
+def volume() -> modal.Volume:
+    return modal.Volume.from_name(VOLUME, create_if_missing=True)
+
+
+def vol_put(items: dict[str, bytes]) -> None:
+    with volume().batch_upload(force=True) as batch:
+        for key, data in items.items():
+            batch.put_file(io.BytesIO(data), key)
+
+
+def vol_get(key: str) -> bytes | None:
+    try:
+        return b"".join(volume().read_file(key))
+    except Exception:  # not there (or Volume unreachable): callers fall back
+        return None
+
+
+async def save_session(sb: modal.Sandbox, session: str, key: str) -> bool:
+    """Copy the Claude session .jsonl out of the sandbox into the Volume (never to GitHub: it can hold private code)."""
+    if not SESSION_ID.fullmatch(session or ""):  # the id comes from the sandbox: only accept a plain uuid
+        return False
+    _, found = await sh(sb, "sh", "-c", f"find {CLAUDE_PROJECTS} -name '{session}.jsonl' | head -1", workdir="/")
+    if not found.strip():
+        return False
+    data = await sb.filesystem.read_bytes.aio(found.strip())
+    await asyncio.to_thread(vol_put, {key: data})
+    return True
+
+
+async def restore_session(sb: modal.Sandbox, repo: str, number: int, session: str) -> bool:
+    """Put a saved session where Claude Code looks for it: ~/.claude/projects/<working dir with / as ->/<id>.jsonl."""
+    if not SESSION_ID.fullmatch(session or ""):
+        return False
+    data = await asyncio.to_thread(vol_get, runs.session_key(repo, number, session))
+    if not data or len(data) > runs.MAX_SESSION_BYTES:
+        return False
+    folder = f"{CLAUDE_PROJECTS}/{WORKDIR.replace('/', '-')}"
+    await sh(sb, "mkdir", "-p", folder, workdir="/")
+    await sb.filesystem.write_bytes.aio(data, f"{folder}/{session}.jsonl")
+    return True
+
+
+def remote_branch_exists(d: str, repo: str, branch: str) -> bool:
+    try:
+        return bool(git(d, "ls-remote", "--heads", f"https://github.com/{repo}", branch).strip())
+    except subprocess.CalledProcessError:
+        return False
+
+
+async def push(d: str, branch: str, force: bool, log) -> None:
+    """Push, retrying a couple of times: a rejected or flaky push shouldn't throw away a verified diff."""
+    for attempt in range(1, PUSH_ATTEMPTS + 1):
+        try:
+            await asyncio.to_thread(git, d, "push", *(["--force"] if force else []), "origin", branch)
+            return
+        except subprocess.CalledProcessError:
+            if attempt == PUSH_ATTEMPTS:
+                raise
+            log(f"\033[33mpush failed, retrying ({attempt}/{PUSH_ATTEMPTS})\033[0m")
+            await asyncio.sleep(2 * attempt)
+
+
+async def handle(repo: str, number: int, secret: modal.Secret, instructions: str | None = None) -> None:
+    """One run on an issue. `instructions` is the text of a `/agent` comment: continue the earlier work on its branch."""
+
     def log(msg: str) -> None:
         print(f"\033[1;35m[{repo}#{number}]\033[0m {msg}", flush=True)
 
-    sb = None
+    branch = f"agent/issue-{number}"
+    rec = runs.Record(trigger="label `agent`" if instructions is None else "`/agent` comment")
+    sb, session, diff, pr_url, meta = None, None, "", "", {}
     with tempfile.TemporaryDirectory() as d:
         try:
-            await gh.relabel(repo, number, "agent", "agent-working")
+            await gh.set_label(repo, number, "agent-working")
             issue = await gh.get_issue(repo, number)
-            log(f"picked up: {issue['title']}")
-            await gh.comment(repo, number, "Picked up by the agent. Working in a Modal Sandbox.")
+            log(f"picked up: {issue['title']}" + (f" (/agent: {instructions[:60]})" if instructions is not None else ""))
+            await gh.upsert_comment(repo, number, runs.RECORD_MARKER, runs.render_record(rec, VOLUME))
 
-            await asyncio.to_thread(git, d, "clone", "--depth", "1", f"https://github.com/{repo}", ".")
+            existing_pr = await gh.find_agent_pr(repo, branch)
+            on_branch = instructions is not None and await asyncio.to_thread(remote_branch_exists, d, repo, branch)
+            pending = None
+            if instructions is not None:
+                raw = await asyncio.to_thread(vol_get, runs.meta_key(repo, number))
+                meta = json.loads(raw) if raw else {}
+                if not on_branch and meta.get("has_diff"):
+                    pending = (await asyncio.to_thread(vol_get, runs.diff_key(repo, number)) or b"").decode()
+                    diff = pending  # stays saved with the run until a push succeeds
+            clone = ["clone", "--depth", "1", *(["--branch", branch] if on_branch else []), f"https://github.com/{repo}", "."]
+            await asyncio.to_thread(git, d, *clone)
+            if pending:  # the earlier push never happened: start from the diff that was kept
+                await asyncio.to_thread(git, d, "apply", "--binary", "-", stdin=pending.encode())
             sb = await modal.Sandbox.create.aio(
                 app=app,
                 image=image,
@@ -250,11 +343,34 @@ async def handle(repo: str, number: int, secret: modal.Secret) -> None:
                 outbound_domain_allowlist=EGRESS,
                 tags={"app": "fife", "issue": str(number), "repo": repo},
             )
+            rec.sandbox = sb.object_id
             log(f"sandbox {sb.object_id}")
             await upload(sb, d)
-            summary, session = await run_claude(sb, task_prompt(issue), secret, log)
+
+            rec.stage = "agent"
+            if instructions is None:
+                summary, session, cost = await run_claude(sb, task_prompt(issue), secret, log)
+                rec.resumed = "fresh session"
+            else:
+                follow_up = continue_prompt(instructions)
+                old = meta.get("session")
+                try:
+                    if not old or not await restore_session(sb, repo, number, old):
+                        raise AgentFailed("no usable saved session")
+                    summary, session, cost = await run_claude(sb, follow_up, secret, log, resume=old)
+                    rec.resumed = f"resumed `{old}`"
+                except AgentFailed as e:
+                    log(f"\033[33mcannot resume ({str(e).splitlines()[0]}); starting a fresh session from the issue, PR and diff\033[0m")
+                    pr_body = existing_pr["body"] if existing_pr else ""
+                    earlier = pending or (await gh.pr_diff(repo, existing_pr["number"]) if existing_pr else "")
+                    prompt = runs.fallback_prompt(issue, pr_body or "", earlier, follow_up)
+                    summary, session, cost = await run_claude(sb, prompt, secret, log)
+                    rec.resumed = "fresh session (resume was not possible)"
+            rec.cost += cost
             # The agent's own "tests pass" isn't trusted: the orchestrator runs its verify script and loops on failure.
+            rec.stage = "verify"
             for attempt in range(1, MAX_ROUNDS + 1):
+                rec.rounds = attempt
                 code, out = await sh(sb, "sh", "-c", f"{VERIFY_CMD} 2>&1")
                 if code == 0 and (skips := SKIPPED.search(out)):
                     code, out = 1, f"{out}\n\nverify exited 0 but {skips.group(1)} test(s) were skipped; make them run."
@@ -263,7 +379,10 @@ async def handle(repo: str, number: int, secret: modal.Secret) -> None:
                 log(f"\033[33mverify failed (round {attempt}/{MAX_ROUNDS}):\033[0m {last_line(out)}")
                 if attempt == MAX_ROUNDS:
                     raise AgentFailed(f"Still failing after {MAX_ROUNDS} rounds:\n```\n{out[-2000:]}\n```")
-                summary, session = await run_claude(sb, retry_prompt(code, out), secret, log, resume=session)
+                rec.stage = "agent"
+                summary, session, cost = await run_claude(sb, retry_prompt(code, out), secret, log, resume=session)
+                rec.cost += cost
+                rec.stage = "verify"
             log(f"verify passed (round {attempt}): {last_line(out)}")
             _, script = await sh(sb, "cat", VERIFY)
             tests = (
@@ -277,8 +396,9 @@ async def handle(repo: str, number: int, secret: modal.Secret) -> None:
             if not diff.strip():
                 raise AgentFailed("The agent made no changes.")
 
-            branch, title = f"agent/issue-{number}", f"Fix #{number}: {issue['title']}"
-            await asyncio.to_thread(git, d, "checkout", "-b", branch)
+            rec.stage = "push"
+            title = f"Fix #{number}: {issue['title']}"
+            await asyncio.to_thread(git, d, "checkout", "-B", branch)
             await asyncio.to_thread(git, d, "apply", "--binary", "-", stdin=diff.encode())
             await asyncio.to_thread(git, d, "add", "-A")
             # The sandbox is untrusted, so its pathspec filter above is a convenience; this host-side check is the guard.
@@ -286,8 +406,9 @@ async def handle(repo: str, number: int, secret: modal.Secret) -> None:
             out = await asyncio.to_thread(git, d, "diff", "--cached", "--name-only", "--no-renames", "-z")
             if blocked := [f for f in out.split("\0") if f.lower().startswith(".github/") or f.lower() == ".gitmodules"]:
                 raise AgentFailed(f"Refusing to push changes to CI/submodule config: {', '.join(blocked)}")
-            await asyncio.to_thread(git, d, *GIT_IDENT, "commit", "-m", title)
-            await asyncio.to_thread(git, d, "push", "--force", "origin", branch)
+            await asyncio.to_thread(git, d, *GIT_IDENT, "commit", "-m", title if instructions is None else f"Agent: {instructions[:60]}")
+            await push(d, branch, force=instructions is None, log=log)
+            diff = ""  # pushed: nothing to keep
 
             demo = ""
             try:  # the passing verify run's recording, if it made one (not every repo is a web app)
@@ -296,7 +417,6 @@ async def handle(repo: str, number: int, secret: modal.Secret) -> None:
                     log(f"demo: {', '.join(name for name, _ in media)}")
             except Exception as e:  # a missing demo shouldn't block the PR
                 log(f"demo skipped: {e!r}")
-            await sb.terminate.aio()
             ci = ""
             if dropped.strip():
                 ci = (
@@ -305,24 +425,66 @@ async def handle(repo: str, number: int, secret: modal.Secret) -> None:
                     f"```diff\n{dropped.strip()[-6000:]}\n```\n</details>"
                 )
                 log("\033[33mdropped the agent's .github/ changes (shown in the PR)\033[0m")
-            pr = await gh.open_pr(repo, branch, title, f"Closes #{number}\n\n{summary}{tests}{ci}{demo}")
-            await gh.comment(repo, number, f"Opened {pr}")
-            await gh.relabel(repo, number, "agent-working", "agent-done")
-            log(f"\033[1;32mPR {pr}\033[0m")
+            rec.stage = "PR"
+            if existing_pr:  # same branch, so the PR already shows the new commit
+                pr_url = existing_pr["html_url"]
+                await gh.comment(repo, existing_pr["number"], f"Updated by `/agent`.\n\n{summary}{tests}{ci}{demo}")
+            else:
+                pr_url = await gh.open_pr(repo, branch, title, f"Closes #{number}\n\n{summary}{tests}{ci}{demo}")
+            rec.pr, rec.status = pr_url, "done"
+            log(f"\033[1;32mPR {pr_url}\033[0m")
         except Exception as e:
-            if sb:
-                await sb.terminate.aio()
             if isinstance(e, subprocess.CalledProcessError):  # surface git's own error, minus any token
                 e = AgentFailed(f"`git {e.cmd[3]}` failed:\n```\n{e.stderr.decode(errors='ignore')[-1500:]}\n```")
-            reason = str(e) or repr(e)  # some exceptions (e.g. TimeoutError()) have an empty message
-            log(f"\033[1;31mfailed: {reason.splitlines()[0]}\033[0m")
-            await gh.comment(repo, number, f"The agent could not finish this issue.\n\n{reason}")
-            await gh.relabel(repo, number, "agent-working", "agent-failed")
+            rec.status = "failed"
+            rec.reason = str(e) or repr(e)  # some exceptions (e.g. TimeoutError()) have an empty message
+            log(f"\033[1;31mfailed at {rec.stage}: {rec.reason.splitlines()[0]}\033[0m")
+            if diff.strip() and rec.stage == "push":  # verified work that could not be pushed: keep it
+                rec.diff_note = runs.diff_comment(diff, "the push failed")
+        finally:
+            if sb:
+                try:
+                    if session:
+                        key = runs.session_key(repo, number, session)
+                        if await save_session(sb, session, key):
+                            rec.session = key
+                    items = {runs.meta_key(repo, number): runs.dumps_meta(rec.session and session or "", rec.stage, rec.reason, bool(diff.strip()), pr_url)}
+                    if diff.strip():
+                        items[runs.diff_key(repo, number)] = diff.encode()
+                    await asyncio.to_thread(vol_put, items)
+                except Exception as e:
+                    log(f"could not save the session: {e!r}")
+                try:
+                    await sb.terminate.aio()
+                except Exception as e:
+                    log(f"could not terminate the sandbox: {e!r}")
+            try:
+                await gh.upsert_comment(repo, number, runs.RECORD_MARKER, runs.render_record(rec, VOLUME))
+                if rec.diff_note:
+                    await gh.comment(repo, number, rec.diff_note)
+                await gh.set_label(repo, number, "agent-done" if rec.status == "done" else "agent-failed")
+            except Exception as e:
+                log(f"could not update GitHub: {e!r}")
+
+
+async def resolve_issue(repo: str, number: int) -> int | None:
+    """A `/agent` comment on a PR continues the issue behind its agent/issue-N branch; on an issue, that issue."""
+    issue = await gh.get_issue(repo, number)
+    if "pull_request" not in issue:
+        return number
+    return runs.issue_number_from_branch((await gh.get_pr(repo, number))["head"]["ref"])
 
 
 async def watch(secret: modal.Secret) -> None:
-    print("Watching every repo this token can push to for issues labelled `agent` (Ctrl+C to stop)")
-    seen, tasks, repos, refreshed = set(), set(), [], 0.0
+    print("Watching every repo this token can push to for issues labelled `agent` and `/agent` comments (Ctrl+C to stop)")
+
+    async def run(repo: str, number: int, instructions: str | None) -> None:
+        await handle(repo, number, secret, instructions)
+
+    dispatcher = runs.Dispatcher(run)
+    started = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    since: dict[str, str] = {}
+    repos, refreshed, polled_comments = [], 0.0, 0.0
     while True:
         try:
             if time.monotonic() - refreshed > 60:  # pick up new repos, and repos that just got their first issue
@@ -330,11 +492,22 @@ async def watch(secret: modal.Secret) -> None:
                 print(f"\033[2m  watching {len(repos)} repos\033[0m", flush=True)
             for repo in repos:
                 for issue in await gh.labelled_issues(repo, "agent"):
-                    if (repo, issue["number"]) not in seen:
-                        seen.add((repo, issue["number"]))
-                        task = asyncio.create_task(handle(repo, issue["number"], secret))
-                        tasks.add(task)
-                        task.add_done_callback(tasks.discard)
+                    dispatcher.labelled(repo, issue["number"])
+            if time.monotonic() - polled_comments > COMMENT_POLL_SECONDS:
+                polled_comments = time.monotonic()
+                for repo in repos:
+                    comments = await gh.comments_since(repo, since.get(repo, started))
+                    if comments:
+                        since[repo] = max(c["updated_at"] for c in comments)
+                    comments = [c for c in comments if c["created_at"] >= started]  # old comments never trigger
+                    for c in comments:  # only commands from trusted authors cost an API call and a run
+                        if runs.parse_agent_comment(c["body"]) is not None and runs.may_trigger(c):
+                            n = await resolve_issue(repo, int(c["issue_url"].rsplit("/", 1)[1]))
+                            if n is None:
+                                c["body"] = ""
+                            else:
+                                c["issue_url"] = f"{c['issue_url'].rsplit('/', 1)[0]}/{n}"
+                    dispatcher.comments(repo, comments)
         except httpx.HTTPError as e:  # a GitHub blip shouldn't stop the watcher
             print(f"\033[2m  GitHub poll failed, retrying: {e!r}\033[0m", flush=True)
         await asyncio.sleep(5)

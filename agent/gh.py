@@ -118,3 +118,51 @@ async def delete_media_branches(repo: str) -> None:
 async def close_pr_and_branch(repo: str, pr: dict) -> None:
     await _call("PATCH", f"/repos/{repo}/pulls/{pr['number']}", json={"state": "closed"})
     await _call("DELETE", f"/repos/{repo}/git/refs/heads/{pr['head']['ref']}")
+
+
+async def set_label(repo: str, number: int, new: str) -> None:
+    """Make `new` the only agent state label on the issue (the `agent` trigger label included)."""
+    for old in LABELS:
+        if old != new:
+            await relabel_remove(repo, number, old)
+    await _call("POST", f"/repos/{repo}/issues/{number}/labels", json={"labels": [new]})
+
+
+async def relabel_remove(repo: str, number: int, label: str) -> None:
+    try:
+        await _call("DELETE", f"/repos/{repo}/issues/{number}/labels/{label}")
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code != 404:
+            raise
+
+
+async def upsert_comment(repo: str, number: int, marker: str, body: str) -> None:
+    """Edit the comment containing `marker` (the run record), or create it."""
+    page = 1
+    while batch := await _call("GET", f"/repos/{repo}/issues/{number}/comments", params={"per_page": 100, "page": page}):
+        for c in batch:
+            if marker in c["body"]:
+                await _call("PATCH", f"/repos/{repo}/issues/comments/{c['id']}", json={"body": body})
+                return
+        page += 1
+    await comment(repo, number, body)
+
+
+async def comments_since(repo: str, since: str) -> list[dict]:
+    """Issue and PR comments of the repo created or edited since the ISO timestamp."""
+    return await _call("GET", f"/repos/{repo}/issues/comments", params={"since": since, "per_page": 100, "sort": "created", "direction": "asc"})
+
+
+async def find_agent_pr(repo: str, branch: str) -> dict | None:
+    prs = await _call("GET", f"/repos/{repo}/pulls", params={"state": "open", "head": f"{repo.split('/')[0]}:{branch}"})
+    return prs[0] if prs else None
+
+
+async def get_pr(repo: str, number: int) -> dict:
+    return await _call("GET", f"/repos/{repo}/pulls/{number}")
+
+
+async def pr_diff(repo: str, number: int) -> str:
+    r = await _client.get(f"/repos/{repo}/pulls/{number}", headers={"Accept": "application/vnd.github.diff"})
+    r.raise_for_status()
+    return r.text
