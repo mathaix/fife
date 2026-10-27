@@ -50,7 +50,7 @@ EGRESS = [
 ]  # fmt: skip
 TOKEN_RE = re.compile(r"sk-ant-oat\d+-[A-Za-z0-9_-]+")
 
-app = modal.App.lookup("sandbox-demo", create_if_missing=True)
+app = modal.App.lookup("fife", create_if_missing=True)
 image = (
     modal.Image.debian_slim(python_version="3.12")
     .apt_install("git", "curl", "ffmpeg")
@@ -248,7 +248,7 @@ async def handle(repo: str, number: int, secret: modal.Secret) -> None:
                 image=image,
                 timeout=3600,
                 outbound_domain_allowlist=EGRESS,
-                tags={"issue": str(number), "repo": repo},
+                tags={"app": "fife", "issue": str(number), "repo": repo},
             )
             log(f"sandbox {sb.object_id}")
             await upload(sb, d)
