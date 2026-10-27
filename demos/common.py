@@ -5,7 +5,7 @@ from contextlib import contextmanager
 
 import modal
 
-app = modal.App.lookup("sandbox-demo", create_if_missing=True)
+app = modal.App.lookup("fife", create_if_missing=True)
 
 
 @contextmanager
