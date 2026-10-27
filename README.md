@@ -105,8 +105,16 @@ which Claude Code reads automatically.
    a separate branch `agent-media-issue-N`, so they show in the PR without being part of its changes. Shut
    the sandbox down, open a PR that says "Closes #N" with the agent's summary, the verify result and script,
    and the demo images; comment the link on the issue and relabel it `agent-done`.
-9. **On failure** at any step: shut the sandbox down, comment the reason on the issue, relabel it
-   `agent-failed`.
+9. **Record.** Every run, success or failure, posts or updates one run-record comment on the issue (status,
+   failed stage, reason, verify rounds, cost, sandbox id) and relabels it `agent-done` or `agent-failed`. The
+   Claude session file is copied into the Modal Volume `agent-sessions` as `<repo>/issue-N/<session-id>.jsonl`
+   (never to GitHub, since it can hold private code). If the push fails after a few retries, the verified diff
+   is attached to the issue and saved in the Volume.
+10. **Retry or steer.** Re-adding `agent` retries without restarting the watcher. A comment starting with
+    `/agent <instructions>` on the issue or its PR, from an owner, member or collaborator, starts a new run on
+    the same `agent/issue-N` branch (or applies the kept diff if the push never happened), resuming the saved
+    session; if that is missing or too big it starts a fresh session from the issue, PR description and diff.
+    Runs on one issue queue up one after another. Ordinary comments never trigger a run.
 
 ## Architecture
 
@@ -134,7 +142,7 @@ per-issue lifecycle, credential boundaries and failure path, or download
 
 | Path | What's there |
 |---|---|
-| `agent/` | The backlog resolver: the orchestrator (`run.py`), the GitHub client (`gh.py`) and the demo issue seeder (`seed_issues.py`) |
+| `agent/` | The backlog resolver: the orchestrator (`run.py`), its testable logic (`runs.py`: run records, `/agent` parsing, dispatch), the GitHub client (`gh.py`) and the demo issue seeder (`seed_issues.py`) |
 | `sample_app/` | A small FastAPI bookshelf app to try it on, with its pytest suite |
 | `docs/` | Architecture walkthrough, diagrams and the interactive workflow page |
 | `Makefile` | Shortcuts: `make setup`, `make watch`, `make issue`, `make seed` |
