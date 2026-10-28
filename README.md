@@ -2,9 +2,9 @@
   <img src="docs/logo.svg" alt="Fife logo: a golden retriever face next to the words Fife, Your AI backlog resolver" width="640">
 </p>
 
-# Fife: your AI backlog resolver
+# Fife — Claude Code Agent Factory on Modal Sandboxes
 
-**Stop steering coding agents. Start managing them.**
+**Your AI backlog resolver.** Stop steering coding agents. Start managing them.
 
 Working with coding agents for most of us means sitting with them: one session, one prompt at a time, watching and
 correcting. You can only steer one agent at once, so you're the bottleneck.
@@ -13,13 +13,18 @@ Fife lets you manage your agents instead. Hand off work the way you would to a t
 and label it. Agents pick it up, each on its own disposable cloud computer, and come back with finished pull
 requests that are tested and show that the change works. You review results, not sessions.
 
+[**Presentation: Build Your Software Agent Factory →**](https://presentations.claramap.com/agentsandboxes/)
+
+Learn how Modal Sandboxes and headless Claude Code turn
+GitHub issues into tested pull requests.
+
+[Read the transcript](https://presentations.claramap.com/agentsandboxes/transcript/)
+
 ## Background
 
 Fife demonstrates how to build a software factory with [Modal](https://modal.com) as the agent runtime and headless
 Claude Code as the coding agent. Your Claude subscription token is injected into each sandbox, so the agents
 run on your subscription.
-**[View the slides](https://mathaix.github.io/fife/slides/)** ·
-[PDF](https://mathaix.github.io/fife/slides/carousel.pdf)
 
 **TL;DR:** to build your own software factory you need two ideas:
 
@@ -45,15 +50,23 @@ Put the two together and every ticket becomes its own agent run, in parallel, wi
 
 > Agents follow the instructions in issue text. Use it on repos where you trust who can file and label issues.
 
-## Setup
+## Quickstart
+
+Five minutes from clone to a pull request, using the bundled sample app.
+
+**Prerequisites:** Python 3 and [uv](https://docs.astral.sh/uv/); a [Modal](https://modal.com) account;
+a GitHub fine-grained token; a Claude Pro/Max subscription (or an Anthropic API key).
+
+**1. Clone and install.**
 
 ```bash
-make setup                      # creates .venv (needs uv); `make` lists all commands
-modal setup                     # or export MODAL_TOKEN_ID / MODAL_TOKEN_SECRET
+git clone https://github.com/mathaix/fife.git && cd fife
+make setup                      # creates .venv; `make` lists all commands
+.venv/bin/modal setup           # log in to Modal (or export MODAL_TOKEN_ID / MODAL_TOKEN_SECRET)
 ```
 
-Put these in a `.env` file in this folder (gitignored), one `KEY=value` per line, or export them in your
-shell (the shell wins). Full-line `#` comments are fine; inline comments are not.
+**2. Credentials.** Put these in a `.env` file in this folder (gitignored), one `KEY=value` per line, or export
+them in your shell (the shell wins). Full-line `#` comments are fine; inline comments are not.
 
 ```
 GH_DEMO_TOKEN=github_pat_...
@@ -64,6 +77,31 @@ GH_DEMO_TOKEN=github_pat_...
 | `GH_DEMO_TOKEN` | Fine-grained GitHub token. Agents watch every repo this token can push to, so its repository access *is* their scope. Permissions: Contents, Issues, Pull requests (read/write); leave Workflows off |
 | `CLAUDE_CODE_OAUTH_TOKEN` | From `claude setup-token`; runs on your Claude Pro/Max subscription. Or set `ANTHROPIC_API_KEY` instead. If neither is set, `run.py` runs `claude setup-token` for you and caches the token in `.env` (gitignored) until it expires |
 | `AGENT_MODEL` | Optional, defaults to `sonnet` |
+
+**3. Give the agents a repo.** `sample_app/` is a small FastAPI bookshelf with three seeded bugs. Push it to a repo
+of its own that the token can push to, and create the three demo issues there:
+
+```bash
+gh repo create bookshelf --private --clone
+cp -r sample_app/app sample_app/requirements.txt bookshelf/
+mkdir bookshelf/tests && cp sample_app/tests/test_books.py bookshelf/tests/
+git -C bookshelf add . && git -C bookshelf commit -qm "Bookshelf sample app" && git -C bookshelf push -q
+.venv/bin/python agent/seed_issues.py --repo <you>/bookshelf    # prints #1 #2 #3 (add --reset between rehearsals)
+```
+
+**4. Run one issue.**
+
+```bash
+make issue ISSUE=<you>/bookshelf#1
+```
+
+The terminal streams the agent's steps while a sandbox appears in the Modal dashboard.
+
+**5. The pull request.** A few minutes later the issue is labelled `agent-done` and a PR titled
+`Fix #1: ...` arrives on branch `agent/issue-1`. It closes the issue, summarises the change, shows the
+verify output from the sandbox (`**Verified** in the sandbox, round 1 of 3: 5 passed`), includes the test
+script the agent wrote, and, for web changes, a GIF of the passing browser test.
+[Here is one](https://github.com/mathaix/fife/pull/5). Review and merge it like any other PR.
 
 ## Using it
 
@@ -76,7 +114,7 @@ Then label any issue `agent` (create the label in the repo the first time), and 
 arrives. A failed issue isn't retried while `--watch` keeps running; restart it, or use `make issue`.
 
 Give agents per-repo guidance (how to run the tests, code style) in a `CLAUDE.md` at the target repo's root,
-which Claude Code reads automatically.
+which Claude Code reads automatically. On a subscription token, parallel agents share your plan's usage limits.
 
 ## Workflow
 
@@ -102,10 +140,10 @@ which Claude Code reads automatically.
    refuse to continue if it touches `.github/` (workflows run with the repo's secrets).
 8. **Publish.** Commit to branch `agent/issue-N` and push. If the passing run recorded anything, turn the
    video into a GIF (GitHub plays those inline), take only genuine PNG/GIF files under 5 MB, and push them to
-   a separate branch `agent-media-issue-N`, so they show in the PR without being part of its changes. Shut
-   the sandbox down, open a PR that says "Closes #N" with the agent's summary, the verify result and script,
-   and the demo images; comment the link on the issue and relabel it `agent-done`.
-9. **Record.** Every run, success or failure, posts or updates one run-record comment on the issue (status,
+   a separate branch `agent-media-issue-N`, so they show in the PR without being part of its changes. Open
+   a PR that says "Closes #N" with the agent's summary, the verify result and script, and the demo images;
+   comment the link on the issue.
+9. **Record and shut down.** The sandbox is terminated. Every run, success or failure, posts or updates one run-record comment on the issue (status,
    failed stage, reason, verify rounds, cost, sandbox id) and relabels it `agent-done` or `agent-failed`. The
    Claude session file is copied into the Modal Volume `agent-sessions` as `<repo>/issue-N/<session-id>.jsonl`
    (never to GitHub, since it can hold private code). If the push fails after a few retries, the verified diff
@@ -157,16 +195,3 @@ docs link to files that exist and that the commands they show are real. No Modal
 pip install -r sample_app/requirements.txt
 cd sample_app && python -m pytest -q
 ```
-
-## Try it on the sample app
-
-`sample_app/` (a small FastAPI app with three seeded bugs) is a ready-made target. Copy it into a repo of its
-own, then:
-
-```bash
-python agent/seed_issues.py --repo owner/name    # create the three demo issues (add --reset between rehearsals)
-python agent/run.py --watch                      # then label issues `agent` in the GitHub UI, live
-```
-
-Watch sandboxes appear in the Modal dashboard while the agents run. On a subscription token, parallel agents
-share your plan's usage limits.

@@ -44,7 +44,7 @@ def test_documented_commands_exist_and_use_real_flags():
 
 def test_setup_env_vars_are_read_by_the_agent():
     agent_code = "\n".join(p.read_text() for p in (ROOT / "agent").glob("*.py"))
-    names = re.findall(r"^\| `([A-Z_]+)` \|", section(README.read_text(), "Setup"), re.M)
+    names = re.findall(r"^\| `([A-Z_]+)` \|", section(README.read_text(), "Quickstart"), re.M)
     assert names, "Setup should document the Act 3 environment variables"
     for name in names:
         assert name in agent_code, f"README documents {name} but the agent never reads it"
