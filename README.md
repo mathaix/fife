@@ -20,13 +20,6 @@ To build your own software factory you need two ideas:
 Put together, you can orchestrate and automate all kinds of development activity, from working tickets in
 Jira to executing tasks from Slack.
 
-Working with coding agents for most of us means sitting with them: one session, one prompt at a time, watching and
-correcting. You can only steer one agent at once, so you're the bottleneck.
-
-Fife lets you manage your agents instead. Hand off work the way you would to a team: write a clear issue
-and label it. Agents pick it up, each on its own disposable cloud computer, and come back with finished pull
-requests that are tested and show that the change works. You review results, not sessions.
-
 [**Presentation: Build Your Software Agent Factory →**](https://presentations.claramap.com/agentsandboxes/)
 
 Learn how Modal Sandboxes and headless Claude Code turn
@@ -35,6 +28,13 @@ GitHub issues into tested pull requests.
 [Read the transcript](https://presentations.claramap.com/agentsandboxes/transcript/)
 
 ## Background
+
+Working with coding agents for most of us means sitting with them: one session, one prompt at a time, watching and
+correcting. You can only steer one agent at once, so you're the bottleneck.
+
+Fife lets you manage your agents instead. Hand off work the way you would to a team: write a clear issue
+and label it. Agents pick it up, each on its own disposable cloud computer, and come back with finished pull
+requests that are tested and show that the change works. You review results, not sessions.
 
 Fife demonstrates how to build a software factory with [Modal](https://modal.com) as the agent runtime and headless
 Claude Code as the coding agent. Your Claude subscription token is injected into each sandbox, so the agents
