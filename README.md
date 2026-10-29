@@ -13,12 +13,12 @@
 To build your own software factory you need two ideas:
 
 1. **Agent sandboxes.** A disposable, isolated computer per task, so an agent can run anything without
-   touching your machine. Fife creates a fresh [Modal](https://modal.com) sandbox per issue.
+   touching your machine.
 2. **Headless agent execution** (e.g. `claude -p`). The agent runs from a script with no one at the keyboard,
-   so issues, cron jobs or webhooks can start it. Fife runs `claude -p` inside each sandbox.
+   so issues, cron jobs or webhooks can start it.
 
 Put together, you can orchestrate and automate all kinds of development activity, from working tickets in
-Jira to executing tasks from Slack. Fife is a reference implementation that shows how this is done.
+Jira to executing tasks from Slack.
 
 Working with coding agents for most of us means sitting with them: one session, one prompt at a time, watching and
 correcting. You can only steer one agent at once, so you're the bottleneck.
