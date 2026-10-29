@@ -8,8 +8,17 @@
 
 ![From chatting with an assistant, to one agent in a terminal, to parallel local agents, to the discovery of fire: sandboxes plus headless agents make the agent factory, where tickets go in and pull requests come out.](docs/evolution.png)
 
-**TL;DR:** the two concepts you need to build your own agent factory are **headless agent execution** and
-**sandboxes**. Fife is a reference implementation that shows how this is done.
+## TL;DR
+
+To build your own software factory you need two ideas:
+
+1. **Agent sandboxes.** A disposable, isolated computer per task, so an agent can run anything without
+   touching your machine. Fife creates a fresh [Modal](https://modal.com) sandbox per issue.
+2. **Headless agent execution** (e.g. `claude -p`). The agent runs from a script with no one at the keyboard,
+   so issues, cron jobs or webhooks can start it. Fife runs `claude -p` inside each sandbox.
+
+Put the two together and every ticket becomes its own agent run, in parallel, with a pull request at the end.
+Fife is a reference implementation that shows how this is done.
 
 Working with coding agents for most of us means sitting with them: one session, one prompt at a time, watching and
 correcting. You can only steer one agent at once, so you're the bottleneck.
@@ -30,15 +39,6 @@ GitHub issues into tested pull requests.
 Fife demonstrates how to build a software factory with [Modal](https://modal.com) as the agent runtime and headless
 Claude Code as the coding agent. Your Claude subscription token is injected into each sandbox, so the agents
 run on your subscription.
-
-**TL;DR:** to build your own software factory you need two ideas:
-
-1. **Agent sandboxes.** A disposable, isolated computer per task, so an agent can run anything without
-   touching your machine. Fife creates a fresh [Modal](https://modal.com) sandbox per issue.
-2. **Headless agent execution** (e.g. `claude -p`). The agent runs from a script with no one at the keyboard,
-   so issues, cron jobs or webhooks can start it. Fife runs `claude -p` inside each sandbox.
-
-Put the two together and every ticket becomes its own agent run, in parallel, with a pull request at the end.
 
 ## Why it's useful
 
