@@ -13,7 +13,8 @@
 To build your own software factory you need two ideas:
 
 1. **Agent sandboxes.** A disposable, isolated computer per task, so an agent can run anything without
-   touching your machine.
+   touching your machine. Because each task has its own computer, tasks run in parallel: ten tickets
+   means ten sandboxes working at once, and a broken run is thrown away with its sandbox.
 2. **[Headless agent execution](https://docs.claude.com/en/docs/claude-code/headless)** (e.g. `claude -p`). The agent runs from a script with no one at the keyboard,
    so issues, cron jobs or webhooks can start it.
 
