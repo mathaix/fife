@@ -6,7 +6,7 @@
 
 **Your AI backlog resolver.** Stop steering coding agents. Start managing them.
 
-![From chatting with an assistant, to one agent in a terminal, to parallel local agents, to the discovery of fire: sandboxes plus headless agents make the agent factory, where tickets go in and pull requests come out.](docs/evolution.png)
+![Evolution of AI development: 1. chat with ChatGPT, 2. work in a terminal, 3. parallel local development, then the discovery-of-fire moment, sandboxes plus headless agents, leading to 4. agent factory (tickets in, PRs out, one isolated workspace per task) and 5. agent swarm.](docs/evolution.png)
 
 ## TL;DR
 
@@ -17,8 +17,8 @@ To build your own software factory you need two ideas:
 2. **Headless agent execution** (e.g. `claude -p`). The agent runs from a script with no one at the keyboard,
    so issues, cron jobs or webhooks can start it. Fife runs `claude -p` inside each sandbox.
 
-Put the two together and every ticket becomes its own agent run, in parallel, with a pull request at the end.
-Fife is a reference implementation that shows how this is done.
+Put together, you can orchestrate and automate all kinds of development activity, from working tickets in
+Jira to executing tasks from Slack. Fife is a reference implementation that shows how this is done.
 
 Working with coding agents for most of us means sitting with them: one session, one prompt at a time, watching and
 correcting. You can only steer one agent at once, so you're the bottleneck.
