@@ -103,6 +103,8 @@ verify output from the sandbox (`**Verified** in the sandbox, round 1 of 3: 5 pa
 script the agent wrote, and, for web changes, a GIF of the passing browser test.
 [Here is one](https://github.com/mathaix/fife/pull/5). Review and merge it like any other PR.
 
+Longer walkthrough with troubleshooting: [docs/tutorial.md](docs/tutorial.md).
+
 ## Using it
 
 ```bash
@@ -182,7 +184,7 @@ per-issue lifecycle, credential boundaries and failure path, or download
 |---|---|
 | `agent/` | The backlog resolver: the orchestrator (`run.py`), its testable logic (`runs.py`: run records, `/agent` parsing, dispatch), the GitHub client (`gh.py`) and the demo issue seeder (`seed_issues.py`) |
 | `sample_app/` | A small FastAPI bookshelf app to try it on, with its pytest suite |
-| `docs/` | Architecture walkthrough, diagrams and the interactive workflow page |
+| `docs/` | Tutorial, architecture walkthrough, diagrams, the interactive workflow page and the social preview image |
 | `Makefile` | Shortcuts: `make setup`, `make watch`, `make issue`, `make seed` |
 | `PRD.md` | Product requirements |
 
