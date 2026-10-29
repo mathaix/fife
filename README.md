@@ -6,6 +6,11 @@
 
 **Your AI backlog resolver.** Stop steering coding agents. Start managing them.
 
+![From chatting with an assistant, to one agent in a terminal, to parallel local agents, to the discovery of fire: sandboxes plus headless agents make the agent factory, where tickets go in and pull requests come out.](docs/evolution.png)
+
+**TL;DR:** the two concepts you need to build your own agent factory are **headless agent execution** and
+**sandboxes**. Fife is a reference implementation that shows how this is done.
+
 Working with coding agents for most of us means sitting with them: one session, one prompt at a time, watching and
 correcting. You can only steer one agent at once, so you're the bottleneck.
 
